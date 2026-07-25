@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Báo cáo Doanh thu & Chi phí · 收入及費用報表 — Yiye Vietnam 越南怡業</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#EAEEF3; --surface:#FFFFFF; --surface-2:#F5F7FA;
+  --ink:#16223A; --ink-2:#3A4A66; --ink-soft:#6B7A93; --line:#DCE3EC; --line-2:#EAEFF5;
+  --rev:#0F766E; --rev-soft:#D5EAE6;
+  --op:#4F46E5;  --op-soft:#E2E0FB;
+  --mfg:#B45309; --mfg-soft:#F6E6D2;
+  --pos:#0F766E; --neg:#B4232F;
+  --shadow:0 1px 2px rgba(22,34,58,.05),0 8px 24px rgba(22,34,58,.06);
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+h1,h2,h3{font-family:"Space Grotesk",sans-serif;margin:0;letter-spacing:-.01em}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px 64px}
+
+/* ---------- Header ---------- */
+.masthead{background:linear-gradient(160deg,#16223A 0%,#1E3050 60%,#243c63 100%);color:#fff;border-radius:20px;padding:26px 28px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.masthead::after{content:"₫";position:absolute;right:-10px;bottom:-46px;font-size:200px;font-family:"Space Grotesk";color:rgba(255,255,255,.05);font-weight:700;line-height:1}
+.mh-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;position:relative;z-index:1}
+.mh-title h1{font-size:26px;font-weight:700;line-height:1.15}
+.mh-title .zh{font-size:15px;color:#B9C6DE;font-weight:500;margin-top:3px;letter-spacing:.02em}
+.mh-title .sub{font-size:13px;color:#93A4C4;margin-top:8px}
+.stamp{border:1.5px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 14px;text-align:center;background:rgba(255,255,255,.04)}
+.stamp .lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8FA1C1}
+.stamp .val{font-family:"IBM Plex Mono";font-size:18px;font-weight:600;margin-top:2px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:22px;position:relative;z-index:1}
+.yearsel{display:flex;background:rgba(255,255,255,.08);border-radius:10px;padding:3px}
+.yearsel button{border:0;background:transparent;color:#B9C6DE;font-family:"IBM Plex Mono";font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;cursor:pointer;transition:.15s}
+.yearsel button:hover{color:#fff}
+.yearsel button.on{background:#fff;color:var(--ink)}
+.spacer{flex:1}
+.cur-toggle{display:flex;background:rgba(255,255,255,.08);border-radius:10px;padding:3px}
+.cur-toggle button{border:0;background:transparent;color:#B9C6DE;font-family:"IBM Plex Mono";font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer}
+.cur-toggle button.on{background:#fff;color:var(--ink)}
+.uploadbtn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--ink);border:0;border-radius:10px;padding:9px 16px;font-family:Inter;font-weight:600;font-size:13px;cursor:pointer;transition:.15s}
+.uploadbtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.2)}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:22px}
+.kpi{background:var(--surface);border-radius:var(--r);padding:18px 18px 12px;box-shadow:var(--shadow);border-top:3px solid var(--line);position:relative}
+.kpi.rev{border-top-color:var(--rev)} .kpi.op{border-top-color:var(--op)} .kpi.mfg{border-top-color:var(--mfg)} .kpi.rat{border-top-color:var(--ink-2)}
+.kpi .k-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft);font-weight:600}
+.kpi .k-zh{font-size:11px;color:var(--line);display:none}
+.kpi .k-val{font-family:"IBM Plex Mono";font-size:20px;font-weight:600;margin-top:8px;line-height:1.1;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .k-unit{font-size:13px;color:var(--ink-soft);font-weight:500}
+.kpi .k-sub{font-size:12px;color:var(--ink-soft);margin-top:7px;display:flex;align-items:center;gap:6px}
+.chip{font-family:"IBM Plex Mono";font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px}
+.chip.up{background:var(--rev-soft);color:var(--rev)} .chip.down{background:#FBE3E5;color:var(--neg)} .chip.flat{background:var(--surface-2);color:var(--ink-soft)}
+.spark{position:absolute;right:14px;top:16px;width:78px;height:30px}
+
+/* ---------- Cards / sections ---------- */
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 22px;margin-top:16px}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.sec-tag{font-family:"IBM Plex Mono";font-size:12px;font-weight:600;padding:3px 9px;border-radius:7px}
+.sec-tag.rev{background:var(--rev-soft);color:var(--rev)} .sec-tag.op{background:var(--op-soft);color:var(--op)} .sec-tag.mfg{background:var(--mfg-soft);color:var(--mfg)} .sec-tag.an{background:#E7EBF2;color:var(--ink-2)}
+.sec-head h2{font-size:19px;font-weight:600}
+.sec-head .zh{font-size:13px;color:var(--ink-soft);font-weight:500}
+.sec-note{color:var(--ink-soft);font-size:12.5px;margin:2px 0 16px}
+.grid-2{display:grid;grid-template-columns:1.55fr 1fr;gap:22px;align-items:start}
+.chart-box{position:relative;height:300px}
+.chart-box.sm{height:270px}
+
+/* ---------- Table ---------- */
+.tbl-scroll{overflow-x:auto;margin-top:16px;border:1px solid var(--line-2);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:9px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line-2)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{background:var(--surface-2);font-weight:600;color:var(--ink-2);font-size:12px;position:sticky;top:0}
+thead th:first-child{z-index:2}
+tbody tr:hover td{background:var(--surface-2)}
+tbody tr:hover td:first-child{background:var(--surface-2)}
+tr.total-row td{font-weight:700;border-top:2px solid var(--ink);background:#F0F3F8}
+tr.total-row td:first-child{background:#F0F3F8}
+td.sumcol,th.sumcol{background:#EDF2FA}
+th.sumcol{color:var(--ink);font-weight:700}
+td.sumcol{font-weight:600;color:var(--ink)}
+tbody tr:hover td.sumcol{background:#E3EBF7}
+tr.total-row td.sumcol{background:#DDE6F3}
+#drop .dz{cursor:pointer}
+.fx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:14px}
+.fx-item{border:1px solid var(--line-2);border-radius:12px;padding:13px 15px;background:var(--surface-2)}
+.fx-item.file{border-color:var(--op);background:#F3F2FE}
+.fx-y{font-family:"Space Grotesk";font-weight:700;font-size:17px;color:var(--ink)}
+.fx-in{display:flex;align-items:center;gap:6px;margin-top:7px}
+.fx-in input{width:96px;font-family:"IBM Plex Mono";font-size:14px;font-weight:600;padding:6px 8px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fff}
+.fx-in input:focus{outline:2px solid var(--op);border-color:var(--op)}
+.fx-in span{font-size:12px;color:var(--ink-soft)}
+.fx-src{font-size:11px;color:var(--ink-soft);margin-top:7px}
+.fx-item.file .fx-src{color:var(--op);font-weight:600}
+td.num,th.num{font-family:"IBM Plex Mono";font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px;vertical-align:middle}
+
+/* ---------- Month lookup ---------- */
+.lookup{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.lookup label{font-size:13px;color:var(--ink-soft);font-weight:600}
+select{font-family:Inter;font-size:14px;padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font-weight:600}
+.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.dcard{border:1px solid var(--line-2);border-radius:12px;padding:16px;background:var(--surface-2)}
+.dcard .dc-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.dcard .dc-t{font-size:12px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;color:var(--ink-2)}
+.dcard .dc-big{font-family:"IBM Plex Mono";font-size:18px;font-weight:600;letter-spacing:-.02em}
+.dcard .dc-u{font-size:12px;color:var(--ink-soft)}
+.brk{margin-top:12px}
+.brk-row{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:3px 0}
+.brk-row .bl{flex:1;color:var(--ink-2)}
+.brk-row .bv{font-family:"IBM Plex Mono";font-weight:500}
+.bar-mini{height:5px;border-radius:3px;background:var(--line);margin-top:2px;overflow:hidden}
+.bar-mini > i{display:block;height:100%;border-radius:3px}
+
+/* ---------- Analysis ---------- */
+.insights{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.ins{display:flex;gap:12px;padding:14px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface-2)}
+.ins .ic{font-size:20px;line-height:1;flex-shrink:0}
+.ins .it{font-size:13px;color:var(--ink-2)}
+.ins .it b{color:var(--ink);font-weight:600}
+.ins .zh2{display:block;margin-top:3px;color:var(--ink-soft);font-size:12px;line-height:1.5}
+.ins .zh2 b{color:var(--ink-2);font-weight:600}
+
+/* ---------- Upload / toast ---------- */
+#drop{position:fixed;inset:0;background:rgba(22,34,58,.75);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50}
+#drop.show{display:flex}
+#drop .dz{background:#fff;border-radius:18px;padding:40px 48px;text-align:center;max-width:440px;border:2px dashed var(--op)}
+#drop h3{font-size:20px;margin-bottom:8px}
+#drop p{color:var(--ink-soft);font-size:13px;margin:6px 0}
+#drop .close{margin-top:16px;background:var(--surface-2);border:0;padding:9px 18px;border-radius:9px;cursor:pointer;font-weight:600;font-family:Inter}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:.3s;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--neg)}
+
+.foot{color:var(--ink-soft);font-size:12px;text-align:center;margin-top:30px;line-height:1.7}
+.foot b{color:var(--ink-2)}
+
+@media(max-width:900px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .grid-2{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
+  .insights{grid-template-columns:1fr}
+  .spark{display:none}
+}
+@media(max-width:560px){
+  .kpis{grid-template-columns:1fr}
+  .mh-title h1{font-size:21px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="masthead">
+    <div class="mh-top">
+      <div class="mh-title">
+        <h1>Doanh thu &amp; Chi phí — Yiye Việt Nam</h1>
+        <div class="zh">越南怡業收入及費用相關報表</div>
+        <div class="sub">Báo cáo tra cứu hằng tuần · Doanh thu: USD · Chi phí: VND (₫)<br><span style="color:#7d8fb0">每週查詢報表 · 收入以美元計 · 費用以越南盾計</span></div>
+      </div>
+      <div class="stamp">
+        <div class="lbl">Cập nhật đến / 截至</div>
+        <div class="val" id="asof">—</div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="yearsel" id="yearsel"></div>
+      <div class="spacer"></div>
+      <div class="cur-toggle" id="curtoggle">
+        <button data-c="VND" class="on">₫ VND · 越盾</button>
+        <button data-c="USD">$ USD · 折算</button>
+      </div>
+      <select id="tplYear" title="Chọn năm cho bảng mẫu" style="font-size:13px;padding:8px 10px;border-radius:10px;border:0;font-weight:600"></select>
+      <button class="uploadbtn" id="dlTemplate" style="background:rgba(255,255,255,.12);color:#fff">⤓ Tải bảng mẫu / 下載範本</button>
+      <button class="uploadbtn" id="openUpload">⤴ Tải file tuần mới / 上傳新檔</button>
+      <button class="uploadbtn" id="exportData" style="background:rgba(255,255,255,.12);color:#fff">⬇ Xuất data.json / 匯出</button>
+      <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none">
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpis" id="kpis"></div>
+
+  <!-- EXCHANGE RATE -->
+  <div class="card">
+    <div class="sec-head"><span class="sec-tag an">TỶ GIÁ · 匯率</span><h2>Tỷ giá quy đổi VND → USD</h2><span class="zh">依年度換算匯率</span></div>
+    <div class="sec-note">Dùng khi bật chế độ hiển thị USD. 2023–2025 nhập tay theo tỷ giá chính thức; 2026 lấy theo file cập nhật. Bạn có thể sửa trực tiếp mỗi ô. · 用於美元顯示模式；2023–2025 為手動官方匯率，2026 依上傳檔案，可直接修改各欄。</div>
+    <div id="fxTable"></div>
+  </div>
+
+  <!-- MONTH LOOKUP -->
+  <div class="card">
+    <div class="sec-head"><span class="sec-tag an">TRA CỨU · 查詢</span><h2>Tra cứu theo tháng</h2><span class="zh">按月份查詢</span></div>
+    <div class="sec-note">Chọn một tháng để xem nhanh doanh thu và chi phí của tháng đó. · 選擇月份以快速查看該月收入與費用。</div>
+    <div class="lookup">
+      <label for="monthsel">Tháng / 月份:</label>
+      <select id="monthsel"></select>
+    </div>
+    <div class="detail-grid" id="detail"></div>
+  </div>
+
+  <!-- REVENUE -->
+  <div class="card">
+    <div class="sec-head"><span class="sec-tag rev">DOANH THU · 收入</span><h2>Doanh thu theo tháng &amp; công ty</h2><span class="zh">收入 · 按月份及公司 (USD)</span></div>
+    <div class="sec-note">Doanh thu hợp nhất và phân bổ theo từng pháp nhân trong nhóm. · 集團合併收入及各法人分佈。</div>
+    <div class="grid-2">
+      <div class="chart-box"><canvas id="revTrend"></canvas></div>
+      <div class="chart-box sm"><canvas id="revDonut"></canvas></div>
+    </div>
+    <div class="tbl-scroll"><table id="revTable"></table></div>
+  </div>
+
+  <!-- OPEX -->
+  <div class="card">
+    <div class="sec-head"><span class="sec-tag op">CHI PHÍ VẬN HÀNH · 營業費用</span><h2>Chi phí hoạt động theo phòng ban</h2><span class="zh">營業費用 · 按部門</span></div>
+    <div class="sec-note">Chi phí của khối văn phòng &amp; kinh doanh, kèm tỷ lệ chi phí / doanh thu. · 辦公室與業務部門費用，含費用/收入比例。</div>
+    <div class="grid-2">
+      <div class="chart-box"><canvas id="opStack"></canvas></div>
+      <div class="chart-box sm"><canvas id="opDonut"></canvas></div>
+    </div>
+    <div class="tbl-scroll"><table id="opTable"></table></div>
+  </div>
+
+  <!-- MFG -->
+  <div class="card">
+    <div class="sec-head"><span class="sec-tag mfg">CHI PHÍ SẢN XUẤT · 製造費用</span><h2>Chi phí sản xuất theo phòng ban</h2><span class="zh">製造費用 · 按部門</span></div>
+    <div class="sec-note">Chi phí của các xưởng &amp; bộ phận sản xuất, kèm tỷ lệ chi phí / doanh thu. · 各生產車間與部門費用，含費用/收入比例。</div>
+    <div class="grid-2">
+      <div class="chart-box"><canvas id="mfgStack"></canvas></div>
+      <div class="chart-box sm"><canvas id="mfgDonut"></canvas></div>
+    </div>
+    <div class="tbl-scroll"><table id="mfgTable"></table></div>
+  </div>
+
+  <!-- ANALYSIS -->
+  <div class="card">
+    <div class="sec-head"><span class="sec-tag an">PHÂN TÍCH · 分析</span><h2>So sánh theo năm &amp; nhận định</h2><span class="zh">年度比較與分析</span></div>
+    <div class="sec-note">So sánh doanh thu và chi phí giữa các năm có trong dữ liệu, kèm các nhận định tự động. · 比較資料中各年度之收入與費用，並附自動分析。</div>
+    <div class="grid-2">
+      <div class="chart-box"><canvas id="yoyChart"></canvas></div>
+      <div class="chart-box sm"><canvas id="ratioChart"></canvas></div>
+    </div>
+    <div class="insights" id="insights"></div>
+  </div>
+
+  <div class="foot">
+    Cập nhật hằng tuần: bấm <b>“Tải file tuần mới”</b> và chọn đúng file báo cáo (định dạng có các sheet <b>综合表YYYY</b>) — trang sẽ tự đọc và vẽ lại toàn bộ bảng &amp; biểu đồ.<br>
+    <span style="color:var(--ink-2)">每週更新：點擊「上傳新檔」並選擇正確的報表檔（須含 <b>综合表YYYY</b> 工作表），本頁將自動讀取並重繪所有表格與圖表。</span><br>
+    Trang chạy hoàn toàn trong trình duyệt, không gửi dữ liệu đi đâu · 本頁完全於瀏覽器執行，不會上傳任何資料 · Dùng file <b>越南怡業收入及費用相關報表-H.xls</b> làm mẫu chuẩn / 作為標準範本。<br>
+    <span style="color:var(--ink-2)">Nguồn dữ liệu · 資料來源: <b id="dataSource">…</b></span>
+  </div>
+</div>
+
+<!-- DROP OVERLAY -->
+<div id="drop">
+  <div class="dz">
+    <h3>Thả file báo cáo vào đây<br><span style="font-size:14px;color:var(--ink-soft)">將報表檔拖曳至此</span></h3>
+    <p>Định dạng <b>.xls / .xlsx</b>, có sheet tên <b>综合表YYYY</b><br>格式為 .xls / .xlsx，須含 综合表YYYY 工作表</p>
+    <p>hoặc bấm để chọn file từ máy · 或點擊選擇檔案</p>
+    <button class="close" id="closeDrop">Đóng / 關閉</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====================== DATA (embedded, refreshed on upload) ====================== */
+let DATA = {};
+const EMBEDDED = {
+ "2026": {
+  "sheet": "综合表2026",
+  "asof": "2026.07.17",
+  "revenue": {
+   "entities": [
+    "怡業股份有限公司",
+    "HUSHAN",
+    "AQUILSTAR (H.K.)",
+    "BOCHUANG MOLDS & PLASTICS",
+    "AQUILSTAR(VN)"
+   ],
+   "months": {
+    "1月": {
+     "total": 439784.6123193914,
+     "怡業股份有限公司": 404234.89999999973,
+     "HUSHAN": 20117.9,
+     "AQUILSTAR (H.K.)": 15326.88,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 104.93231939163498
+    },
+    "2月": {
+     "total": 904770.6780608363,
+     "怡業股份有限公司": 362442.21999999986,
+     "HUSHAN": 532228.8999999999,
+     "AQUILSTAR (H.K.)": 10075.289999999999,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 24.268060836501903
+    },
+    "3月": {
+     "total": 618929.4099999999,
+     "怡業股份有限公司": 540213.2899999999,
+     "HUSHAN": 78716.12,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "4月": {
+     "total": 476949.7900000003,
+     "怡業股份有限公司": 367968.4900000003,
+     "HUSHAN": 61051.100000000006,
+     "AQUILSTAR (H.K.)": 45591.799999999996,
+     "BOCHUANG MOLDS & PLASTICS": 2338.4,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "5月": {
+     "total": 503737.9600000001,
+     "怡業股份有限公司": 431449.63000000006,
+     "HUSHAN": 65358.50000000001,
+     "AQUILSTAR (H.K.)": 6929.83,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "6月": {
+     "total": 545818.7400000001,
+     "怡業股份有限公司": 507039.35000000015,
+     "HUSHAN": 32437.700000000004,
+     "AQUILSTAR (H.K.)": 6341.689999999999,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "7月": {
+     "total": 351983.88999999996,
+     "怡業股份有限公司": 269827.58999999997,
+     "HUSHAN": 82156.3,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "8月": {
+     "total": 0.0,
+     "怡業股份有限公司": 0.0,
+     "HUSHAN": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "9月": {
+     "total": 0.0,
+     "怡業股份有限公司": 0.0,
+     "HUSHAN": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "10月": {
+     "total": 0.0,
+     "怡業股份有限公司": 0.0,
+     "HUSHAN": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "11月": {
+     "total": 0.0,
+     "怡業股份有限公司": 0.0,
+     "HUSHAN": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    },
+    "12月": {
+     "total": 0.0,
+     "怡業股份有限公司": 0.0,
+     "HUSHAN": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0,
+     "AQUILSTAR(VN)": 0.0
+    }
+   },
+   "total": {
+    "total": 3841975.08,
+    "怡業股份有限公司": 2883175.47,
+    "HUSHAN": 872066.52,
+    "AQUILSTAR (H.K.)": 84265.49,
+    "BOCHUANG MOLDS & PLASTICS": 2338.4,
+    "AQUILSTAR(VN)": 129.2
+   }
+  },
+  "opex": {
+   "depts": [
+    "总经理室",
+    "行政课",
+    "财务课",
+    "业务课",
+    "工程课"
+   ],
+   "months": {
+    "1月": {
+     "total": 783771710.0,
+     "总经理室": 34611247.0,
+     "行政课": 255705643.0,
+     "财务课": 130807176.0,
+     "业务课": 142246687.0,
+     "工程课": 220400957.0,
+     "ratio": 0.06776318422386973
+    },
+    "2月": {
+     "total": 755569870.0,
+     "总经理室": 72914762.0,
+     "行政课": 254688531.0,
+     "财务课": 127128357.0,
+     "业务课": 60434800.0,
+     "工程课": 240403420.0,
+     "ratio": 0.03175267843229724
+    },
+    "3月": {
+     "total": 993566944.0,
+     "总经理室": 100916701.0,
+     "行政课": 292444475.0,
+     "财务课": 157691378.0,
+     "业务课": 163506840.0,
+     "工程课": 279007550.0,
+     "ratio": 0.06103799591374902
+    },
+    "4月": {
+     "total": 1121474730.0,
+     "总经理室": 356008809.0,
+     "行政课": 251905131.0,
+     "财务课": 122310736.0,
+     "业务课": 173003230.0,
+     "工程课": 218246824.0,
+     "ratio": 0.08940485059198551
+    },
+    "5月": {
+     "total": 930021700.0,
+     "总经理室": 163141168.0,
+     "行政课": 302540308.0,
+     "财务课": 132410462.0,
+     "业务课": 124060532.0,
+     "工程课": 207869230.0,
+     "ratio": 0.07019927945294227
+    },
+    "6月": {
+     "total": 684814908.0,
+     "总经理室": -157281156.0,
+     "行政课": 273895769.0,
+     "财务课": 136390665.0,
+     "业务课": 199137611.0,
+     "工程课": 232672019.0,
+     "ratio": 0.04770556184603459
+    },
+    "7月": {
+     "total": 17566165.0,
+     "总经理室": 3490469.0,
+     "行政课": 0.0,
+     "财务课": 1564601.0,
+     "业务课": 11821550.0,
+     "工程课": 689545.0,
+     "ratio": 0.0018975726957600446
+    },
+    "8月": {
+     "total": 0.0,
+     "总经理室": 0.0,
+     "行政课": 0.0,
+     "财务课": 0.0,
+     "业务课": 0.0,
+     "工程课": 0.0,
+     "ratio": 0.0
+    },
+    "9月": {
+     "total": 0.0,
+     "总经理室": 0.0,
+     "行政课": 0.0,
+     "财务课": 0.0,
+     "业务课": 0.0,
+     "工程课": 0.0,
+     "ratio": 0.0
+    },
+    "10月": {
+     "total": 0.0,
+     "总经理室": 0.0,
+     "行政课": 0.0,
+     "财务课": 0.0,
+     "业务课": 0.0,
+     "工程课": 0.0,
+     "ratio": 0.0
+    },
+    "11月": {
+     "total": 0.0,
+     "总经理室": 0.0,
+     "行政课": 0.0,
+     "财务课": 0.0,
+     "业务课": 0.0,
+     "工程课": 0.0,
+     "ratio": 0.0
+    },
+    "12月": {
+     "total": 0.0,
+     "总经理室": 0.0,
+     "行政课": 0.0,
+     "财务课": 0.0,
+     "业务课": 0.0,
+     "工程课": 0.0,
+     "ratio": 0.0
+    }
+   },
+   "total": {
+    "total": 5286786027.0,
+    "总经理室": 573802000.0,
+    "行政课": 1631179857.0,
+    "财务课": 808303375.0,
+    "业务课": 874211250.0,
+    "工程课": 1399289545.0,
+    "ratio": 0.052321651215413
+   }
+  },
+  "mfg": {
+   "depts": [
+    "注塑课1",
+    "装配课1",
+    "品保课",
+    "采购课",
+    "生管课",
+    "仓库课",
+    "注塑课2",
+    "装配课2",
+    "五金课"
+   ],
+   "months": {
+    "1月": {
+     "total": 3190349942.0,
+     "注塑课1": 806691339.0,
+     "装配课1": 1057585668.0,
+     "品保课": 417904923.0,
+     "采购课": 173902119.0,
+     "生管课": 78656951.0,
+     "仓库课": 645046036.0,
+     "注塑课2": 34405562.0,
+     "装配课2": 11105497.0,
+     "五金课": -34948153.0,
+     "ratio": 0.27583066357212377
+    },
+    "2月": {
+     "total": 2808849027.0,
+     "注塑课1": 686988513.0,
+     "装配课1": 1177200999.0,
+     "品保课": 340237918.0,
+     "采购课": 159951058.0,
+     "生管课": 90912677.0,
+     "仓库课": 273302810.0,
+     "注塑课2": 34405569.0,
+     "装配课2": 10901330.0,
+     "五金课": 34948153.0,
+     "ratio": 0.11804134000102728
+    },
+    "3月": {
+     "total": 3422836501.0,
+     "注塑课1": 929245899.0,
+     "装配课1": 1364148271.0,
+     "品保课": 413742149.0,
+     "采购课": 169285111.0,
+     "生管课": 129798526.0,
+     "仓库课": 316706085.0,
+     "注塑课2": 52405562.0,
+     "装配课2": 9717996.0,
+     "五金课": 37786902.0,
+     "ratio": 0.21027579633473495
+    },
+    "4月": {
+     "total": 2293918161.0,
+     "注塑课1": 750774526.0,
+     "装配课1": 778293144.0,
+     "品保课": 294610704.0,
+     "采购课": 152307747.0,
+     "生管课": 62176669.0,
+     "仓库课": 229018707.0,
+     "注塑课2": 54805569.0,
+     "装配课2": 9717997.0,
+     "五金课": -37786902.0,
+     "ratio": 0.18287296625439536
+    },
+    "5月": {
+     "total": 3096099316.0,
+     "注塑课1": 963388341.0,
+     "装配课1": 1159019356.0,
+     "品保课": 357246262.0,
+     "采购课": 162779949.0,
+     "生管课": 96942724.0,
+     "仓库课": 301299126.0,
+     "注塑课2": 45705562.0,
+     "装配课2": 9717996.0,
+     "五金课": 0.0,
+     "ratio": 0.23369770952435562
+    },
+    "6月": {
+     "total": 3139457799.0,
+     "注塑课1": 902882338.0,
+     "装配课1": 1224951753.0,
+     "品保课": 433051618.0,
+     "采购课": 162825005.0,
+     "生管课": 107712414.0,
+     "仓库课": 261142586.0,
+     "注塑课2": 37174088.0,
+     "装配课2": 9717997.0,
+     "五金课": 0.0,
+     "ratio": 0.21870084375150625
+    },
+    "7月": {
+     "total": 4731207.0,
+     "注塑课1": 3493535.0,
+     "装配课1": 243535.0,
+     "品保课": 243535.0,
+     "采购课": 263535.0,
+     "生管课": 243534.0,
+     "仓库课": 243533.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.0005110853291648344
+    },
+    "8月": {
+     "total": 0.0,
+     "注塑课1": 0.0,
+     "装配课1": 0.0,
+     "品保课": 0.0,
+     "采购课": 0.0,
+     "生管课": 0.0,
+     "仓库课": 0.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.0
+    },
+    "9月": {
+     "total": 0.0,
+     "注塑课1": 0.0,
+     "装配课1": 0.0,
+     "品保课": 0.0,
+     "采购课": 0.0,
+     "生管课": 0.0,
+     "仓库课": 0.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.0
+    },
+    "10月": {
+     "total": 0.0,
+     "注塑课1": 0.0,
+     "装配课1": 0.0,
+     "品保课": 0.0,
+     "采购课": 0.0,
+     "生管课": 0.0,
+     "仓库课": 0.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.0
+    },
+    "11月": {
+     "total": 0.0,
+     "注塑课1": 0.0,
+     "装配课1": 0.0,
+     "品保课": 0.0,
+     "采购课": 0.0,
+     "生管课": 0.0,
+     "仓库课": 0.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.0
+    },
+    "12月": {
+     "total": 0.0,
+     "注塑课1": 0.0,
+     "装配课1": 0.0,
+     "品保课": 0.0,
+     "采购课": 0.0,
+     "生管课": 0.0,
+     "仓库课": 0.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.0
+    }
+   },
+   "total": {
+    "total": 17956241953.0,
+    "注塑课1": 5043464491.0,
+    "装配课1": 6761442726.0,
+    "品保课": 2257037109.0,
+    "采购课": 981314524.0,
+    "生管课": 566443495.0,
+    "仓库课": 2026758883.0,
+    "注塑课2": 258901912.0,
+    "装配课2": 60878813.0,
+    "五金课": 0.0,
+    "ratio": 0.17770725423846104
+   }
+  }
+ },
+ "2025": {
+  "sheet": "综合表2025",
+  "asof": "2025.12.31",
+  "revenue": {
+   "entities": [
+    "怡業股份有限公司",
+    "HUSHAN",
+    "AQUILSTAR(VN)",
+    "AQUILSTAR (H.K.)",
+    "BOCHUANG MOLDS & PLASTICS"
+   ],
+   "months": {
+    "1月": {
+     "total": 516049.1400000001,
+     "怡業股份有限公司": 511654.49000000005,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 4394.65,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "2月": {
+     "total": 379833.11461538466,
+     "怡業股份有限公司": 379028.43000000005,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 309.56461538461537,
+     "AQUILSTAR (H.K.)": 495.12,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "3月": {
+     "total": 502074.57999999996,
+     "怡業股份有限公司": 484935.55,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 17139.03,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "4月": {
+     "total": 693923.0600000003,
+     "怡業股份有限公司": 687064.8900000002,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 6858.17,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "5月": {
+     "total": 249015.52999999994,
+     "怡業股份有限公司": 230508.69999999995,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 18506.829999999998,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "6月": {
+     "total": 467565.3499999999,
+     "怡業股份有限公司": 286738.24,
+     "HUSHAN": 165391.49999999994,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 15435.61,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "7月": {
+     "total": 637705.2999999998,
+     "怡業股份有限公司": 461967.14999999985,
+     "HUSHAN": 157383.80000000002,
+     "AQUILSTAR(VN)": 73.7,
+     "AQUILSTAR (H.K.)": 18280.649999999998,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "8月": {
+     "total": 590032.26,
+     "怡業股份有限公司": 398485.29999999993,
+     "HUSHAN": 140277.30000000005,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 51269.659999999996,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "9月": {
+     "total": 562042.6499999998,
+     "怡業股份有限公司": 418397.25999999983,
+     "HUSHAN": 115629.30000000002,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 28016.089999999997,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "10月": {
+     "total": 710379.6034615382,
+     "怡業股份有限公司": 601219.7099999998,
+     "HUSHAN": 98077.2,
+     "AQUILSTAR(VN)": 3.7134615384615386,
+     "AQUILSTAR (H.K.)": 11078.98,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "11月": {
+     "total": 638568.1192307692,
+     "怡業股份有限公司": 523549.4,
+     "HUSHAN": 78449.4,
+     "AQUILSTAR(VN)": 78.62923076923077,
+     "AQUILSTAR (H.K.)": 36490.689999999995,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "12月": {
+     "total": 625397.975,
+     "怡業股份有限公司": 515739.2900000001,
+     "HUSHAN": 44105.4,
+     "AQUILSTAR(VN)": 61.215,
+     "AQUILSTAR (H.K.)": 65492.07,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    }
+   },
+   "total": {
+    "total": 6572586.68,
+    "怡業股份有限公司": 5499288.41,
+    "HUSHAN": 799313.9,
+    "AQUILSTAR(VN)": 526.82,
+    "AQUILSTAR (H.K.)": 273457.55,
+    "BOCHUANG MOLDS & PLASTICS": 0.0
+   }
+  },
+  "opex": {
+   "depts": [
+    "总经理室",
+    "行政课",
+    "财务课",
+    "业务课",
+    "工程课"
+   ],
+   "months": {
+    "1月": {
+     "total": 995615450.0,
+     "总经理室": 172930109.0,
+     "行政课": 338280288.0,
+     "财务课": 193059905.0,
+     "业务课": 68067218.0,
+     "工程课": 223277930.0,
+     "ratio": 0.07335755033029659
+    },
+    "2月": {
+     "total": 964532747.0,
+     "总经理室": 245789519.0,
+     "行政课": 285145450.0,
+     "财务课": 152914445.0,
+     "业务课": 67437840.0,
+     "工程课": 213245493.0,
+     "ratio": 0.09655358504615166
+    },
+    "3月": {
+     "total": 967191262.0,
+     "总经理室": 123126331.0,
+     "行政课": 331797023.0,
+     "财务课": 141437698.0,
+     "业务课": 75620525.0,
+     "工程课": 295209685.0,
+     "ratio": 0.07324675381074569
+    },
+    "4月": {
+     "total": 859647781.0,
+     "总经理室": 104960279.0,
+     "行政课": 285547740.0,
+     "财务课": 126633294.0,
+     "业务课": 80039614.0,
+     "工程课": 262466854.0,
+     "ratio": 0.047103532507550123
+    },
+    "5月": {
+     "total": 946970635.0,
+     "总经理室": 143160859.0,
+     "行政课": 251272025.0,
+     "财务课": 110287360.0,
+     "业务课": 54573862.0,
+     "工程课": 387676529.0,
+     "ratio": 0.14459535123296807
+    },
+    "6月": {
+     "total": 850451640.0,
+     "总经理室": 98852328.0,
+     "行政课": 289426502.0,
+     "财务课": 131320050.0,
+     "业务课": 156813714.0,
+     "工程课": 174039046.0,
+     "ratio": 0.06915945387859716
+    },
+    "7月": {
+     "total": 815581942.0,
+     "总经理室": 115869482.0,
+     "行政课": 268765886.0,
+     "财务课": 132482157.0,
+     "业务课": 131143126.0,
+     "工程课": 167321291.0,
+     "ratio": 0.04862860670616489
+    },
+    "8月": {
+     "total": 1278631055.0,
+     "总经理室": 241880438.0,
+     "行政课": 311385117.0,
+     "财务课": 151604880.0,
+     "业务课": 363364416.0,
+     "工程课": 210396204.0,
+     "ratio": 0.08239744447232111
+    },
+    "9月": {
+     "total": 951301335.0,
+     "总经理室": 138565190.0,
+     "行政课": 265500190.0,
+     "财务课": 128782975.0,
+     "业务课": 110169351.0,
+     "工程课": 308283629.0,
+     "ratio": 0.0643565989557078
+    },
+    "10月": {
+     "total": 952285434.0,
+     "总经理室": 220350035.0,
+     "行政课": 246107924.0,
+     "财务课": 135826514.0,
+     "业务课": 133715298.0,
+     "工程课": 216285663.0,
+     "ratio": 0.050970736573155866
+    },
+    "11月": {
+     "total": 836438201.0,
+     "总经理室": 101113266.0,
+     "行政课": 232530881.0,
+     "财务课": 123746009.0,
+     "业务课": 127231828.0,
+     "工程课": 251816217.0,
+     "ratio": 0.0498047630637094
+    },
+    "12月": {
+     "total": 1152000021.0,
+     "总经理室": 135020706.0,
+     "行政课": 250937889.0,
+     "财务课": 216585660.0,
+     "业务课": 127379269.0,
+     "工程课": 422076497.0,
+     "ratio": 0.0700390534000376
+    }
+   },
+   "total": {
+    "total": 11570647503.0,
+    "总经理室": 1841618542.0,
+    "行政课": 3356696915.0,
+    "财务课": 1744680947.0,
+    "业务课": 1495556061.0,
+    "工程课": 3132095038.0,
+    "ratio": 0.06693689953109225
+   }
+  },
+  "mfg": {
+   "depts": [
+    "注塑课1",
+    "装配课1",
+    "品保课",
+    "采购课",
+    "生管课",
+    "仓库课",
+    "注塑课2",
+    "装配课2",
+    "五金课"
+   ],
+   "months": {
+    "1月": {
+     "total": 4374246521.0,
+     "注塑课1": 1033167540.0,
+     "装配课1": 1341254843.0,
+     "品保课": 589348145.0,
+     "采购课": 222375209.0,
+     "生管课": 184564269.0,
+     "仓库课": 312396974.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 691139541.0,
+     "ratio": 0.32229713723444353
+    },
+    "2月": {
+     "total": 3332375567.0,
+     "注塑课1": 1000569552.0,
+     "装配课1": 1014735359.0,
+     "品保课": 474749616.0,
+     "采购课": 131946639.0,
+     "生管课": 151190176.0,
+     "仓库课": 240442416.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 318741809.0,
+     "ratio": 0.3335841200983634
+    },
+    "3月": {
+     "total": 4320494922.0,
+     "注塑课1": 1221516424.0,
+     "装配课1": 1281466545.0,
+     "品保课": 546483721.0,
+     "采购课": 190419637.0,
+     "生管课": 173568801.0,
+     "仓库课": 448290832.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 458748962.0,
+     "ratio": 0.3271971535784107
+    },
+    "4月": {
+     "total": 4055655222.0,
+     "注塑课1": 1133991644.0,
+     "装配课1": 1101316226.0,
+     "品保课": 517074643.0,
+     "采购课": 178363631.0,
+     "生管课": 153178753.0,
+     "仓库课": 419963176.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 551767149.0,
+     "ratio": 0.22222553447025348
+    },
+    "5月": {
+     "total": 4205205562.0,
+     "注塑课1": 1249234849.0,
+     "装配课1": 1139737478.0,
+     "品保课": 489010229.0,
+     "采购课": 153493248.0,
+     "生管课": 150763510.0,
+     "仓库课": 449021496.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 573944752.0,
+     "ratio": 0.6421035170158375
+    },
+    "6月": {
+     "total": 4088338420.0,
+     "注塑课1": 1253817835.0,
+     "装配课1": 1211528157.0,
+     "品保课": 476292659.0,
+     "采购课": 172005399.0,
+     "生管课": 236746097.0,
+     "仓库课": 463643806.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 274304467.0,
+     "ratio": 0.33246717285192934
+    },
+    "7月": {
+     "total": 3639640153.0,
+     "注塑课1": 1109202660.0,
+     "装配课1": 1036398519.0,
+     "品保课": 371758244.0,
+     "采购课": 102955504.0,
+     "生管课": 95381985.0,
+     "仓库课": 415394997.0,
+     "注塑课2": 118362524.0,
+     "装配课2": 7738830.0,
+     "五金课": 382446890.0,
+     "ratio": 0.21701146192396056
+    },
+    "8月": {
+     "total": 4138043991.0,
+     "注塑课1": 1027163864.0,
+     "装配课1": 1764208812.0,
+     "品保课": 470298315.0,
+     "采购课": 145587073.0,
+     "生管课": 131461376.0,
+     "仓库课": 378899642.0,
+     "注塑课2": 73777293.0,
+     "装配课2": 7738830.0,
+     "五金课": 138908786.0,
+     "ratio": 0.266663513794012
+    },
+    "9月": {
+     "total": 3271085514.0,
+     "注塑课1": 880508996.0,
+     "装配课1": 1147078959.0,
+     "品保课": 362889364.0,
+     "采购课": 127841919.0,
+     "生管课": 89593539.0,
+     "仓库课": 495385585.0,
+     "注塑课2": 73777276.0,
+     "装配课2": 7738830.0,
+     "五金课": 86271046.0,
+     "ratio": 0.22129259239852042
+    },
+    "10月": {
+     "total": 3465043213.0,
+     "注塑课1": 850853344.0,
+     "装配课1": 1237234624.0,
+     "品保课": 391053507.0,
+     "采购课": 126322194.0,
+     "生管课": 87474218.0,
+     "仓库课": 605780144.0,
+     "注塑课2": 73777293.0,
+     "装配课2": 7738830.0,
+     "五金课": 84809059.0,
+     "ratio": 0.18546519616766985
+    },
+    "11月": {
+     "total": 4119665143.0,
+     "注塑课1": 949661826.0,
+     "装配课1": 1517339410.0,
+     "品保课": 380684066.0,
+     "采购课": 153606087.0,
+     "生管课": 92393727.0,
+     "仓库课": 874986783.0,
+     "注塑课2": 73777274.0,
+     "装配课2": 10919257.0,
+     "五金课": 66296713.0,
+     "ratio": 0.24530078385185747
+    },
+    "12月": {
+     "total": 3636320297.0,
+     "注塑课1": 865326083.0,
+     "装配课1": 1292477834.0,
+     "品保课": 427908344.0,
+     "采购课": 147465132.0,
+     "生管课": 85449000.0,
+     "仓库课": 746743496.0,
+     "注塑课2": 34405571.0,
+     "装配课2": 11105497.0,
+     "五金课": 25439340.0,
+     "ratio": 0.22108023161331486
+    }
+   },
+   "total": {
+    "total": 46646114525.0,
+    "注塑课1": 12575014617.0,
+    "装配课1": 15084776766.0,
+    "品保课": 5497550853.0,
+    "采购课": 1852381672.0,
+    "生管课": 1631765451.0,
+    "仓库课": 5850949347.0,
+    "注塑课2": 447877231.0,
+    "装配课2": 52980074.0,
+    "五金课": 3652818514.0,
+    "ratio": 0.26985060954161777
+   }
+  }
+ },
+ "2024": {
+  "sheet": "综合表2024",
+  "asof": "2024.12.31",
+  "revenue": {
+   "entities": [
+    "怡業股份有限公司",
+    "HUSHAN",
+    "AQUILSTAR(VN)",
+    "AQUILSTAR (H.K.)",
+    "BOCHUANG MOLDS & PLASTICS"
+   ],
+   "months": {
+    "1月": {
+     "total": 542894.24,
+     "怡業股份有限公司": 542894.24,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "2月": {
+     "total": 390717.98,
+     "怡業股份有限公司": 390717.98,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "3月": {
+     "total": 150486.56262357414,
+     "怡業股份有限公司": 148151.34,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 2335.2226235741446,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "4月": {
+     "total": 392139.9000000001,
+     "怡業股份有限公司": 389801.50000000006,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 2338.4
+    },
+    "5月": {
+     "total": 493476.4538783271,
+     "怡業股份有限公司": 491110.4400000001,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 2366.0138783269963,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "6月": {
+     "total": 257968.78064638784,
+     "怡業股份有限公司": 158128.15,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 99840.63064638783,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "7月": {
+     "total": 645821.4822813688,
+     "怡業股份有限公司": 468448.45999999996,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 177373.02228136882,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "8月": {
+     "total": 338806.45501901134,
+     "怡業股份有限公司": 320936.8599999999,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 17869.595019011405,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "9月": {
+     "total": 593317.4100000001,
+     "怡業股份有限公司": 589448.3200000002,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 3869.09,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "10月": {
+     "total": 478504.9972243345,
+     "怡業股份有限公司": 478306.2899999999,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 198.70722433460077,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "11月": {
+     "total": 245203.32,
+     "怡業股份有限公司": 221237.09000000003,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 23966.229999999996,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "12月": {
+     "total": 749572.8682889732,
+     "怡業股份有限公司": 729398.1399999999,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 99.14828897338403,
+     "AQUILSTAR (H.K.)": 20075.58,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    }
+   },
+   "total": {
+    "total": 5278910.45,
+    "怡業股份有限公司": 4928578.81,
+    "HUSHAN": 0.0,
+    "AQUILSTAR(VN)": 300082.34,
+    "AQUILSTAR (H.K.)": 47910.9,
+    "BOCHUANG MOLDS & PLASTICS": 2338.4
+   }
+  },
+  "opex": {
+   "depts": [
+    "总经理室",
+    "行政课",
+    "文管课",
+    "财务课",
+    "业务课",
+    "工程课"
+   ],
+   "months": {
+    "1月": {
+     "total": 522059012.0,
+     "总经理室": 92066616.0,
+     "行政课": 251671608.0,
+     "文管课": 136610.0,
+     "财务课": 163636100.0,
+     "业务课": 14548078.0,
+     "工程课": 0.0,
+     "ratio": 0.0384648775791027
+    },
+    "2月": {
+     "total": 466079084.0,
+     "总经理室": 150129740.0,
+     "行政课": 197086541.0,
+     "文管课": 10299860.0,
+     "财务课": 108022943.0,
+     "业务课": 540000.0,
+     "工程课": 0.0,
+     "ratio": 0.047715140623935455
+    },
+    "3月": {
+     "total": 660078806.0,
+     "总经理室": 181889579.0,
+     "行政课": 221537341.0,
+     "文管课": 18359339.0,
+     "财务课": 152401458.0,
+     "业务课": 43400555.0,
+     "工程课": 42490534.0,
+     "ratio": 0.1754518927118073
+    },
+    "4月": {
+     "total": 732187649.0,
+     "总经理室": 178482949.0,
+     "行政课": 194085748.0,
+     "文管课": 10286280.0,
+     "财务课": 108404393.0,
+     "业务课": 145085789.0,
+     "工程课": 95842490.0,
+     "ratio": 0.07468637075696707
+    },
+    "5月": {
+     "total": 695697031.0,
+     "总经理室": 175821414.0,
+     "行政课": 204073597.0,
+     "文管课": 24199053.0,
+     "财务课": 118076437.0,
+     "业务课": 82729367.0,
+     "工程课": 90797163.0,
+     "ratio": 0.05639150768247459
+    },
+    "6月": {
+     "total": 746170409.0,
+     "总经理室": 174769142.0,
+     "行政课": 209506394.0,
+     "文管课": 26508625.0,
+     "财务课": 113353255.0,
+     "业务课": 95418408.0,
+     "工程课": 126614585.0,
+     "ratio": 0.11569933495523511
+    },
+    "7月": {
+     "total": 948200919.0,
+     "总经理室": 237165646.0,
+     "行政课": 292973290.0,
+     "文管课": 33343569.0,
+     "财务课": 164217612.0,
+     "业务课": 66527889.0,
+     "工程课": 153972913.0,
+     "ratio": 0.05872836039151091
+    },
+    "8月": {
+     "total": 873156421.0,
+     "总经理室": 197758717.0,
+     "行政课": 269455148.0,
+     "文管课": 27171898.0,
+     "财务课": 139716420.0,
+     "业务课": 62620569.0,
+     "工程课": 176433669.0,
+     "ratio": 0.10308616120681702
+    },
+    "9月": {
+     "total": 910425448.0,
+     "总经理室": 197759647.0,
+     "行政课": 261995768.0,
+     "文管课": 29031565.0,
+     "财务课": 191005608.0,
+     "业务课": 73493319.0,
+     "工程课": 157139541.0,
+     "ratio": 0.061378643717870995
+    },
+    "10月": {
+     "total": 947514968.0,
+     "总经理室": 209385024.0,
+     "行政课": 271794449.0,
+     "文管课": 30477425.0,
+     "财务课": 146637056.0,
+     "业务课": 108719529.0,
+     "工程课": 180501485.0,
+     "ratio": 0.0792062756707874
+    },
+    "11月": {
+     "total": 830406648.0,
+     "总经理室": 190663981.0,
+     "行政课": 293854982.0,
+     "文管课": 31599949.0,
+     "财务课": 151194161.0,
+     "业务课": 18376498.0,
+     "工程课": 144717077.0,
+     "ratio": 0.13546417691244964
+    },
+    "12月": {
+     "total": 819800912.0,
+     "总经理室": 138124005.0,
+     "行政课": 265584233.0,
+     "文管课": 29591705.0,
+     "财务课": 210231723.0,
+     "业务课": 38174502.0,
+     "工程课": 138094744.0,
+     "ratio": 0.04374762997339187
+    }
+   },
+   "total": {
+    "total": 9151777307.0,
+    "总经理室": 2124016460.0,
+    "行政课": 2933619099.0,
+    "文管课": 0.0,
+    "财务课": 1766897166.0,
+    "业务课": 749634503.0,
+    "工程课": 1306604201.0,
+    "ratio": 0.06934595609213261
+   }
+  },
+  "mfg": {
+   "depts": [
+    "注塑课1",
+    "装配课1",
+    "品保课",
+    "采购课",
+    "生管课",
+    "仓库课",
+    "注塑课2",
+    "装配课2",
+    "五金课"
+   ],
+   "months": {
+    "1月": {
+     "total": 2920988288.0,
+     "注塑课1": 894737052.0,
+     "装配课1": 1070292608.0,
+     "品保课": 361522737.0,
+     "采购课": 177968881.0,
+     "生管课": 141749951.0,
+     "仓库课": 274717059.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.20457795510977617
+    },
+    "2月": {
+     "total": 2357399945.0,
+     "注塑课1": 837741188.0,
+     "装配课1": 826675616.0,
+     "品保课": 262139820.0,
+     "采购课": 114188527.0,
+     "生管课": 120018053.0,
+     "仓库课": 196636741.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.2294109395665344
+    },
+    "3月": {
+     "total": 2857022032.0,
+     "注塑课1": 933115319.0,
+     "装配课1": 1101751651.0,
+     "品保课": 311373635.0,
+     "采购课": 140692118.0,
+     "生管课": 147829163.0,
+     "仓库课": 222260146.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.7218718703648428
+    },
+    "4月": {
+     "total": 2344158450.0,
+     "注塑课1": 824543076.0,
+     "装配课1": 815901247.0,
+     "品保课": 273565515.0,
+     "采购课": 121089613.0,
+     "生管课": 114532618.0,
+     "仓库课": 194526381.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.22729515665200095
+    },
+    "5月": {
+     "total": 2469012089.0,
+     "注塑课1": 859483276.0,
+     "装配课1": 810938918.0,
+     "品保课": 327099943.0,
+     "采购课": 129891831.0,
+     "生管课": 135689619.0,
+     "仓库课": 205908502.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.19023964753775144
+    },
+    "6月": {
+     "total": 2592296749.0,
+     "注塑课1": 888591420.0,
+     "装配课1": 798297477.0,
+     "品保课": 385588323.0,
+     "采购课": 132172244.0,
+     "生管课": 145183992.0,
+     "仓库课": 242463293.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.3820866077856822
+    },
+    "7月": {
+     "total": 4254113187.0,
+     "注塑课1": 1144374092.0,
+     "装配课1": 1722206529.0,
+     "品保课": 656331610.0,
+     "采购课": 180320284.0,
+     "生管课": 200913167.0,
+     "仓库课": 349967505.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.25046140079836904
+    },
+    "8月": {
+     "total": 3261830436.0,
+     "注塑课1": 1031997141.0,
+     "装配课1": 1182059802.0,
+     "品保课": 451156033.0,
+     "采购课": 169373672.0,
+     "生管课": 172626339.0,
+     "仓库课": 254617449.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.36606141681571863
+    },
+    "9月": {
+     "total": 3167497770.0,
+     "注塑课1": 985013690.0,
+     "装配课1": 1192792596.0,
+     "品保课": 424810582.0,
+     "采购课": 158991203.0,
+     "生管课": 149343359.0,
+     "仓库课": 256546340.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.20298945477858116
+    },
+    "10月": {
+     "total": 3513529095.0,
+     "注塑课1": 1072181777.0,
+     "装配课1": 1345316604.0,
+     "品保课": 452556985.0,
+     "采购课": 165422557.0,
+     "生管课": 163822697.0,
+     "仓库课": 249537477.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 64690998.0,
+     "ratio": 0.27919094459251426
+    },
+    "11月": {
+     "total": 3678326889.0,
+     "注塑课1": 1148619392.0,
+     "装配课1": 1234362945.0,
+     "品保课": 432293878.0,
+     "采购课": 154124243.0,
+     "生管课": 173045820.0,
+     "仓库课": 254135997.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 281744614.0,
+     "ratio": 0.5703851725367783
+    },
+    "12月": {
+     "total": 3672749674.0,
+     "注塑课1": 1049147732.0,
+     "装配课1": 1435005792.0,
+     "品保课": 419804119.0,
+     "采购课": 141787580.0,
+     "生管课": 142159364.0,
+     "仓库课": 240581673.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 244263414.0,
+     "ratio": 0.18630380378723893
+    }
+   },
+   "total": {
+    "total": 37088924604.0,
+    "注塑课1": 11669545155.0,
+    "装配课1": 13535601785.0,
+    "品保课": 4758243180.0,
+    "采购课": 1786022753.0,
+    "生管课": 1806914142.0,
+    "仓库课": 2941898563.0,
+    "注塑课2": 0.0,
+    "装配课2": 0.0,
+    "五金课": 590699026.0,
+    "ratio": 0.2671432454615835
+   }
+  }
+ },
+ "2023": {
+  "sheet": "综合表2023",
+  "asof": "2023.12.31",
+  "revenue": {
+   "entities": [
+    "怡業股份有限公司",
+    "HUSHAN",
+    "AQUILSTAR(VN)",
+    "AQUILSTAR (H.K.)",
+    "BOCHUANG MOLDS & PLASTICS"
+   ],
+   "months": {
+    "1月": {
+     "total": 403929.40999999986,
+     "怡業股份有限公司": 403929.40999999986,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "2月": {
+     "total": 267443.94,
+     "怡業股份有限公司": 267443.94,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "3月": {
+     "total": 523366.07000000007,
+     "怡業股份有限公司": 523366.07000000007,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "4月": {
+     "total": 920848.1499999998,
+     "怡業股份有限公司": 920848.1499999998,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "5月": {
+     "total": 1048330.4999999998,
+     "怡業股份有限公司": 1048330.4999999998,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "6月": {
+     "total": 635210.8800000002,
+     "怡業股份有限公司": 635210.8800000002,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "7月": {
+     "total": 1029889.1700000003,
+     "怡業股份有限公司": 1029889.1700000003,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "8月": {
+     "total": 741950.2499999999,
+     "怡業股份有限公司": 741950.2499999999,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "9月": {
+     "total": 806485.6599999999,
+     "怡業股份有限公司": 806485.6599999999,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "10月": {
+     "total": 670178.8200000001,
+     "怡業股份有限公司": 670178.8200000001,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "11月": {
+     "total": 296870.72000000003,
+     "怡業股份有限公司": 296870.72000000003,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 0.0,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    },
+    "12月": {
+     "total": 517814.60780000006,
+     "怡業股份有限公司": 500796.97000000003,
+     "HUSHAN": 0.0,
+     "AQUILSTAR(VN)": 17017.6378,
+     "AQUILSTAR (H.K.)": 0.0,
+     "BOCHUANG MOLDS & PLASTICS": 0.0
+    }
+   },
+   "total": {
+    "total": 7862318.18,
+    "怡業股份有限公司": 7845300.54,
+    "HUSHAN": 0.0,
+    "AQUILSTAR(VN)": 17017.64,
+    "AQUILSTAR (H.K.)": 0.0,
+    "BOCHUANG MOLDS & PLASTICS": 0.0
+   }
+  },
+  "opex": {
+   "depts": [
+    "总经理室",
+    "行政课",
+    "文管课",
+    "财务课",
+    "业务课",
+    "工程课"
+   ],
+   "months": {
+    "1月": {
+     "total": 544546226.0,
+     "总经理室": 228348006.0,
+     "行政课": 144068519.0,
+     "文管课": 51831357.0,
+     "财务课": 92133976.0,
+     "业务课": 28164368.0,
+     "工程课": 0.0,
+     "ratio": 0.053924890094038974
+    },
+    "2月": {
+     "total": 568823024.0,
+     "总经理室": 276467871.0,
+     "行政课": 137709181.0,
+     "文管课": 40166678.0,
+     "财务课": 87883711.0,
+     "业务课": 26595583.0,
+     "工程课": 0.0,
+     "ratio": 0.08507547772441582
+    },
+    "3月": {
+     "total": 533390574.0,
+     "总经理室": 185722825.0,
+     "行政课": 157757725.0,
+     "文管课": 48096622.0,
+     "财务课": 132488580.0,
+     "业务课": 9324822.0,
+     "工程课": 0.0,
+     "ratio": 0.04076615620114616
+    },
+    "4月": {
+     "total": 563487539.0,
+     "总经理室": 151972711.0,
+     "行政课": 150528500.0,
+     "文管课": 47135345.0,
+     "财务课": 135081287.0,
+     "业务课": 78769696.0,
+     "工程课": 0.0,
+     "ratio": 0.024476892916600858
+    },
+    "5月": {
+     "total": 426149890.0,
+     "总经理室": 154986189.0,
+     "行政课": 141348493.0,
+     "文管课": 43875499.0,
+     "财务课": 49479865.0,
+     "业务课": 36459844.0,
+     "工程课": 0.0,
+     "ratio": 0.01626013513868003
+    },
+    "6月": {
+     "total": 464722984.0,
+     "总经理室": 152720743.0,
+     "行政课": 140385777.0,
+     "文管课": 30114937.0,
+     "财务课": 61344341.0,
+     "业务课": 80157186.0,
+     "工程课": 0.0,
+     "ratio": 0.029264170286252014
+    },
+    "7月": {
+     "total": 500409033.0,
+     "总经理室": 147272847.0,
+     "行政课": 156287463.0,
+     "文管课": 24451600.0,
+     "财务课": 81045298.0,
+     "业务课": 91351825.0,
+     "工程课": 0.0,
+     "ratio": 0.019435451797206484
+    },
+    "8月": {
+     "total": 470303342.0,
+     "总经理室": 157530312.0,
+     "行政课": 158276665.0,
+     "文管课": 24752349.0,
+     "财务课": 75764965.0,
+     "业务课": 53979051.0,
+     "工程课": 0.0,
+     "ratio": 0.025354979905997745
+    },
+    "9月": {
+     "total": 687860775.0,
+     "总经理室": 396172778.0,
+     "行政课": 141204539.0,
+     "文管课": 23406509.0,
+     "财务课": 74518669.0,
+     "业务课": 52558280.0,
+     "工程课": 0.0,
+     "ratio": 0.03411645409789432
+    },
+    "10月": {
+     "total": 682084127.0,
+     "总经理室": 169963221.0,
+     "行政课": 198417544.0,
+     "文管课": 33587767.0,
+     "财务课": 149754137.0,
+     "业务课": 130361458.0,
+     "工程课": 0.0,
+     "ratio": 0.04071057494774305
+    },
+    "11月": {
+     "total": 538084228.0,
+     "总经理室": 144704410.0,
+     "行政课": 208645730.0,
+     "文管课": 35101610.0,
+     "财务课": 85518906.0,
+     "业务课": 64113572.0,
+     "工程课": 0.0,
+     "ratio": 0.07250081490016932
+    },
+    "12月": {
+     "total": 506232726.0,
+     "总经理室": 177457957.0,
+     "行政课": 184727302.0,
+     "文管课": 17337470.0,
+     "财务课": 103891759.0,
+     "业务课": 22818238.0,
+     "工程课": 0.0,
+     "ratio": 0.03910532598922173
+    }
+   },
+   "total": {
+    "total": 6486094468.0,
+    "总经理室": 2343319870.0,
+    "行政课": 1919357438.0,
+    "文管课": 0.0,
+    "财务课": 1128905494.0,
+    "业务课": 674653923.0,
+    "工程课": 0.0,
+    "ratio": 0.03299838200137558
+   }
+  },
+  "mfg": {
+   "depts": [
+    "注塑课1",
+    "装配课1",
+    "品保课",
+    "采购课",
+    "生管课",
+    "仓库课",
+    "注塑课2",
+    "装配课2",
+    "五金课"
+   ],
+   "months": {
+    "1月": {
+     "total": 1617768688.0,
+     "注塑课1": 557864973.0,
+     "装配课1": 577620752.0,
+     "品保课": 162245968.0,
+     "采购课": 87030060.0,
+     "生管课": 99995899.0,
+     "仓库课": 133011036.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.1522843246656605
+    },
+    "2月": {
+     "total": 1906173277.0,
+     "注塑课1": 663283047.0,
+     "装配课1": 707360349.0,
+     "品保课": 213318576.0,
+     "采购课": 85416987.0,
+     "生管课": 93090361.0,
+     "仓库课": 143703957.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.2710028552855649
+    },
+    "3月": {
+     "total": 2526100626.0,
+     "注塑课1": 877110947.0,
+     "装配课1": 946894078.0,
+     "品保课": 258674707.0,
+     "采购课": 93130420.0,
+     "生管课": 100370634.0,
+     "仓库课": 249919840.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.1835225074106849
+    },
+    "4月": {
+     "total": 2463697376.0,
+     "注塑课1": 853398844.0,
+     "装配课1": 954296414.0,
+     "品保课": 285801649.0,
+     "采购课": 88653510.0,
+     "生管课": 102555636.0,
+     "仓库课": 178991323.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.10172872292981974
+    },
+    "5月": {
+     "total": 2619601903.0,
+     "注塑课1": 989049659.0,
+     "装配课1": 966698071.0,
+     "品保课": 283302254.0,
+     "采购课": 91037359.0,
+     "生管课": 100618249.0,
+     "仓库课": 188896311.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.09501262731081186
+    },
+    "6月": {
+     "total": 2745685264.0,
+     "注塑课1": 971732851.0,
+     "装配课1": 1132098061.0,
+     "品保课": 261426756.0,
+     "采购课": 102554740.0,
+     "生管课": 97894949.0,
+     "仓库课": 179977907.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.1643527882260828
+    },
+    "7月": {
+     "total": 2330388950.0,
+     "注塑课1": 845638229.0,
+     "装配课1": 770912455.0,
+     "品保课": 279557676.0,
+     "采购课": 110254615.0,
+     "生管课": 114012694.0,
+     "仓库课": 210013281.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.086036388621234
+    },
+    "8月": {
+     "total": 2285381714.0,
+     "注塑课1": 842453066.0,
+     "装配课1": 770213547.0,
+     "品保课": 267078146.0,
+     "采购课": 111302528.0,
+     "生管课": 113285624.0,
+     "仓库课": 181048803.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.1171192315359025
+    },
+    "9月": {
+     "total": 2070189923.0,
+     "注塑课1": 745325283.0,
+     "装配课1": 663610248.0,
+     "品保课": 259426756.0,
+     "采购课": 116095617.0,
+     "生管课": 107255718.0,
+     "仓库课": 178476301.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.09760179212789089
+    },
+    "10月": {
+     "total": 2536916712.0,
+     "注塑课1": 874538453.0,
+     "装配课1": 926729065.0,
+     "品保课": 288607439.0,
+     "采购课": 121462388.0,
+     "生管课": 123543105.0,
+     "仓库课": 202036262.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.143932796149675
+    },
+    "11月": {
+     "total": 2978066326.0,
+     "注塑课1": 956832703.0,
+     "装配课1": 1056844665.0,
+     "品保课": 296030478.0,
+     "采购课": 316116994.0,
+     "生管课": 110501933.0,
+     "仓库课": 241739553.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.38142684150406875
+    },
+    "12月": {
+     "total": 3123946385.0,
+     "注塑课1": 1246264574.0,
+     "装配课1": 1101363782.0,
+     "品保课": 301145677.0,
+     "采购课": 115301306.0,
+     "生管课": 117991653.0,
+     "仓库课": 241879393.0,
+     "注塑课2": 0.0,
+     "装配课2": 0.0,
+     "五金课": 0.0,
+     "ratio": 0.22938949496515398
+    }
+   },
+   "total": {
+    "total": 29203917144.0,
+    "注塑课1": 10423492629.0,
+    "装配课1": 10574641487.0,
+    "品保课": 3156616082.0,
+    "采购课": 1438356524.0,
+    "生管课": 1281116455.0,
+    "仓库课": 2329693967.0,
+    "注塑课2": 0.0,
+    "装配课2": 0.0,
+    "五金课": 0.0,
+    "ratio": 0.14123253156517757
+   }
+  }
+ }
+};
+
+/* ====================== I18N maps ====================== */
+const DEPT_VI = {
+  '总经理室':'Phòng Tổng Giám đốc','行政课':'Hành chính','文管课':'Quản lý tài liệu',
+  '财务课':'Tài chính','业务课':'Kinh doanh','工程课':'Kỹ thuật',
+  '注塑课1':'Ép nhựa 1','注塑课2':'Ép nhựa 2','装配课1':'Lắp ráp 1','装配课2':'Lắp ráp 2',
+  '品保课':'Kiểm tra chất lượng','采购课':'Mua hàng','生管课':'Quản lý sản xuất',
+  '仓库课':'Kho','五金课':'Kim khí'
+};
+const ENT_VI = {
+  '怡業股份有限公司':'Yiye Co., Ltd','HUSHAN':'HUSHAN (虎山)','AQUILSTAR (H.K.)':'AQUILSTAR (H.K.)',
+  'BOCHUANG MOLDS & PLASTICS':'BOCHUANG Molds & Plastics','AQUILSTAR(VN)':'AQUILSTAR (VN)'
+};
+const viDept = z => DEPT_VI[z] ? DEPT_VI[z]+' · '+z : z;
+const viEnt  = z => ENT_VI[z]  ? ENT_VI[z]  : z;
+const MONTHS = Array.from({length:12},(_,i)=>(i+1)+'月');
+const monLabel = m => 'Th'+m.replace('月','')+'·'+m;   // song ngữ: Th1·1月
+
+/* palette */
+const PAL = ['#0F766E','#4F46E5','#B45309','#7C3AED','#0369A1','#B4232F','#15803D','#A16207','#BE185D','#475569'];
+const C = {rev:'#0F766E',op:'#4F46E5',mfg:'#B45309',ink:'#16223A',soft:'#6B7A93',line:'#DCE3EC'};
+
+/* ====================== formatting ====================== */
+const nf0 = new Intl.NumberFormat('en-US',{maximumFractionDigits:0});
+const nf2 = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const usd = v => '$'+nf0.format(Math.round(v));
+const usd2 = v => '$'+nf2.format(v);
+const vndFull = v => nf0.format(Math.round(v))+' ₫';
+const compactVND = v => nf0.format(Math.round(v))+' ₫';   // số tiền đầy đủ, không viết tắt
+const pct = v => (v*100).toFixed(2)+'%';
+
+/* implied FX rate for a year: opexVND / (ratio * revenueUSD); fallback 26300 */
+function impliedRate(y){
+  const d=DATA[y]; if(!d) return 26300;
+  const o=d.opex.total, r=d.revenue.total;
+  if(o && o.ratio && r && r.total) { const x=o.total/(o.ratio*r.total); if(isFinite(x)&&x>1000) return x; }
+  const m=d.mfg.total;
+  if(m && m.ratio && r && r.total){ const x=m.total/(m.ratio*r.total); if(isFinite(x)&&x>1000) return x; }
+  return 26300;
+}
+/* Tỷ giá VND→USD: 2023–2025 nhập tay (chính thức); 2026 & về sau lấy theo file (suy ra từ dữ liệu) */
+const FX_MANUAL={'2023':24275,'2024':25436,'2025':26248};
+let FX={};
+function ensureFX(years){ (years||Object.keys(DATA)).forEach(y=>{ FX[y]=(FX_MANUAL[y]!=null)?FX_MANUAL[y]:Math.round(impliedRate(y)); }); }
+function fxRate(y){ return (FX[y]!=null&&FX[y]>0)?FX[y]:(FX_MANUAL[y]||Math.round(impliedRate(y))); }
+/* expense value in current display currency */
+let CUR='VND';
+function expVal(y,vnd){ return CUR==='USD' ? vnd/fxRate(y) : vnd; }
+function expFmt(y,vnd){ return CUR==='USD' ? usd(vnd/fxRate(y)) : compactVND(vnd); }
+function expUnit(){ return CUR==='USD' ? 'USD (quy đổi / 折算)' : 'VND ₫ (越南盾)'; }
+
+/* ====================== state ====================== */
+let YEAR = null;
+let charts = {};
+function killChart(id){ if(charts[id]){charts[id].destroy(); delete charts[id];} }
+
+/* ====================== WORKBOOK PARSER (mirror of source layout) ====================== */
+function findRow(rows,col,target){ for(let i=0;i<rows.length;i++){ if(cell(rows,i,col).trim()===target) return i; } return -1; }
+function cell(rows,i,j){ const r=rows[i]; if(!r) return ''; const v=r[j]; return v==null?'':String(v); }
+function toNum(v){ if(v==null||typeof v==='boolean') return 0; if(typeof v==='number') return isFinite(v)?v:0;
+  const s=String(v).trim().replace(/,/g,''); const n=parseFloat(s); return isFinite(n)?n:0; }
+function monthMap(rows,start){ const mm={}; let total=null;
+  for(let i=start;i<Math.min(start+20,rows.length);i++){ const lab=cell(rows,i,0).trim();
+    if(MONTHS.includes(lab)) mm[lab]=i; else if(lab==='综合'){ total=i; break; } }
+  return {mm,total}; }
+
+function parseSheet(rows){
+  const out={asof:'',revenue:{},opex:{},mfg:{}};
+  // asof date
+  for(let i=0;i<3 && !out.asof;i++) for(let j=0;j<(rows[i]||[]).length;j++){
+    const mt=String(cell(rows,i,j)).match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+    if(mt){ out.asof=mt[1]+'.'+String(mt[2]).padStart(2,'0')+'.'+String(mt[3]).padStart(2,'0'); break; } }
+  // revenue
+  const rr=findRow(rows,1,'综合收入USD');
+  const ents=[],ecols=[];
+  for(let j=2;j<(rows[rr]||[]).length;j++){ const h=cell(rows,rr,j).trim();
+    if(h===''||h.includes('月')) break; if(!isNaN(parseFloat(h.replace(/,/g,'')))&&/^[\d.,]+$/.test(h)) break;
+    ents.push(h); ecols.push(j); }
+  let mmo=monthMap(rows,rr+1);
+  const rev={entities:ents,months:{},total:{}};
+  for(const m in mmo.mm){ const ri=mmo.mm[m]; const o={total:toNum(rows[ri][1])}; ents.forEach((e,k)=>o[e]=toNum(rows[ri][ecols[k]])); rev.months[m]=o; }
+  if(mmo.total!=null){ const ri=mmo.total; const o={total:toNum(rows[ri][1])}; ents.forEach((e,k)=>o[e]=toNum(rows[ri][ecols[k]])); rev.total=o; }
+  out.revenue=rev;
+  // expense helper
+  function expense(hr){ if(hr<0) return {depts:[],months:{},total:{}};
+    const deps=[],dcols=[]; let tcol=null;
+    for(let j=1;j<(rows[hr]||[]).length;j++){ const h=cell(rows,hr,j).trim();
+      if(h==='合计'){ tcol=j; break; } if(h===''){ if(deps.length) break; else continue; } deps.push(h); dcols.push(j); }
+    const rcol = tcol!=null ? tcol+1 : null;
+    const mm=monthMap(rows,hr+1); const sec={depts:deps,months:{},total:{}};
+    const build=ri=>{ const o={total:tcol!=null?toNum(rows[ri][tcol]):0}; deps.forEach((d,k)=>o[d]=toNum(rows[ri][dcols[k]]));
+      if(rcol!=null) o.ratio=toNum(rows[ri][rcol]); return o; };
+    for(const m in mm.mm) sec.months[m]=build(mm.mm[m]);
+    if(mm.total!=null) sec.total=build(mm.total);
+    return sec; }
+  out.opex=expense(findRow(rows,1,'总经理室'));
+  out.mfg =expense(findRow(rows,1,'注塑课1'));
+  return out;
+}
+function parseWorkbook(buf){
+  const wb=XLSX.read(buf,{type:'array'}); const found={};
+  wb.SheetNames.forEach(name=>{ const mt=name.match(/综合表\s*(\d{4})/); if(!mt) return;
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:null});
+    try{ found[mt[1]]=parseSheet(rows); }catch(e){ console.warn('parse fail',name,e); } });
+  return found;
+}
+
+/* ====================== RENDER ====================== */
+function yearsSorted(){ return Object.keys(DATA).sort((a,b)=>b-a); }
+function monthsWithData(sec){ return MONTHS.filter(m=> sec.months[m] && sec.months[m].total>0 ); }
+
+function render(){
+  const d=DATA[YEAR]; if(!d) return;
+  document.getElementById('asof').textContent = d.asof || YEAR;
+  renderKPIs(d); renderFX(); renderMonthSelect(d); renderDetail(d, document.getElementById('monthsel').value);
+  renderRevenue(d); renderOpex(d); renderMfg(d); renderAnalysis();
+}
+
+function renderFX(){
+  const box=document.getElementById('fxTable'); if(!box) return;
+  const ys=yearsSorted().slice().sort((a,b)=>a-b);
+  box.innerHTML=`<div class="fx-grid">`+ys.map(y=>{
+    const manual=FX_MANUAL[y]!=null;
+    return `<div class="fx-item${manual?'':' file'}${y===YEAR?'':''}">
+      <div class="fx-y">${y}</div>
+      <div class="fx-in"><input type="number" data-y="${y}" value="${Math.round(fxRate(y))}" step="1" min="1" inputmode="numeric"> <span>₫/USD</span></div>
+      <div class="fx-src">${manual?'Nhập tay · 手動':'Theo file · 依檔案'}</div></div>`;
+  }).join('')+`</div>`;
+  box.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',e=>{
+    const y=e.target.dataset.y, v=parseFloat(e.target.value);
+    if(isFinite(v)&&v>0){ FX[y]=v; render(); } else { e.target.value=Math.round(fxRate(y)); }
+  }));
+}
+
+function sparkline(canvas,vals,color){
+  const c=canvas.getContext('2d'); const w=canvas.width=78,h=canvas.height=30;
+  c.clearRect(0,0,w,h); const mx=Math.max(...vals,1); const step=w/(vals.length-1||1);
+  c.beginPath(); vals.forEach((v,i)=>{ const x=i*step, y=h-4-(v/mx)*(h-8); i?c.lineTo(x,y):c.moveTo(x,y); });
+  c.strokeStyle=color; c.lineWidth=2; c.lineJoin='round'; c.stroke();
+}
+
+function renderKPIs(d){
+  const rev=d.revenue.total.total||0;
+  const op=d.opex.total.total||0, mfg=d.mfg.total.total||0;
+  const opR=d.opex.total.ratio||0, mfgR=d.mfg.total.ratio||0;
+  const totRatio=opR+mfgR;
+  // YoY revenue
+  const prev=DATA[String(+YEAR-1)];
+  let revChip='<span class="chip flat">năm trước n/a · 無前年</span>';
+  if(prev && prev.revenue.total.total){ const g=(rev-prev.revenue.total.total)/prev.revenue.total.total;
+    const cls=g>0.001?'up':g<-0.001?'down':'flat'; revChip=`<span class="chip ${cls}">${g>0?'▲':g<0?'▼':'▬'} ${(Math.abs(g)*100).toFixed(1)}% vs ${+YEAR-1}</span>`; }
+  const revM=MONTHS.map(m=> (d.revenue.months[m]?.total)||0);
+  const opM =MONTHS.map(m=> expVal(YEAR,(d.opex.months[m]?.total)||0));
+  const mfgM=MONTHS.map(m=> expVal(YEAR,(d.mfg.months[m]?.total)||0));
+  const el=document.getElementById('kpis');
+  el.innerHTML=`
+   <div class="kpi rev"><canvas class="spark" id="spR"></canvas>
+     <div class="k-lbl">Doanh thu ${YEAR} · 收入</div>
+     <div class="k-val">${usd(rev)}</div><div class="k-sub">${revChip}</div></div>
+   <div class="kpi op"><canvas class="spark" id="spO"></canvas>
+     <div class="k-lbl">Chi phí vận hành · 營業費用</div>
+     <div class="k-val">${expFmt(YEAR,op)}</div>
+     <div class="k-sub"><span class="chip flat">${pct(opR)} / doanh thu · 費用比</span></div></div>
+   <div class="kpi mfg"><canvas class="spark" id="spM"></canvas>
+     <div class="k-lbl">Chi phí sản xuất · 製造費用</div>
+     <div class="k-val">${expFmt(YEAR,mfg)}</div>
+     <div class="k-sub"><span class="chip flat">${pct(mfgR)} / doanh thu · 費用比</span></div></div>
+   <div class="kpi rat">
+     <div class="k-lbl">Tổng CP / Doanh thu · 總費用比</div>
+     <div class="k-val">${pct(totRatio)}</div>
+     <div class="k-sub"><span class="chip flat">VH·營業 ${pct(opR)} + SX·製造 ${pct(mfgR)}</span></div></div>`;
+  sparkline(document.getElementById('spR'),revM,C.rev);
+  sparkline(document.getElementById('spO'),opM,C.op);
+  sparkline(document.getElementById('spM'),mfgM,C.mfg);
+}
+
+function renderMonthSelect(d){
+  const sel=document.getElementById('monthsel'); const prev=sel.value;
+  const avail=MONTHS.filter(m=> (d.revenue.months[m]?.total>0)||(d.opex.months[m]?.total>0)||(d.mfg.months[m]?.total>0));
+  sel.innerHTML=avail.map(m=>`<option value="${m}">Tháng ${m.replace('月','')} · ${m} / ${YEAR}</option>`).join('');
+  if(avail.includes(prev)) sel.value=prev; else if(avail.length) sel.value=avail[avail.length-1];
+}
+
+function breakdownRows(obj,keys,labelFn,color){
+  const items=keys.map(k=>({k,v:obj[k]||0})).filter(x=>x.v!==0).sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));
+  const mx=Math.max(...items.map(x=>Math.abs(x.v)),1);
+  return items.map(x=>`<div class="brk-row"><div style="flex:1">
+     <div style="display:flex;justify-content:space-between"><span class="bl">${labelFn(x.k)}</span>
+     <span class="bv">${x.fmt||''}</span></div>
+     <div class="bar-mini"><i style="width:${Math.abs(x.v)/mx*100}%;background:${color}"></i></div></div></div>`
+  ).join('');
+}
+function renderDetail(d,m){
+  const box=document.getElementById('detail'); if(!m||!d.revenue.months[m]){box.innerHTML='';return;}
+  const rev=d.revenue.months[m], op=d.opex.months[m]||{}, mfg=d.mfg.months[m]||{};
+  const revItems=d.revenue.entities.map(e=>({k:e,v:rev[e]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  const opItems =d.opex.depts.map(k=>({k,v:op[k]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  const mfgItems=d.mfg.depts.map(k=>({k,v:mfg[k]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  const brk=(items,fmt,lab,color)=>{ const mx=Math.max(...items.map(x=>Math.abs(x.v)),1);
+    return items.map(x=>`<div class="brk-row"><div style="flex:1">
+      <div style="display:flex;justify-content:space-between;gap:8px"><span class="bl">${lab(x.k)}</span><span class="bv">${fmt(x.v)}</span></div>
+      <div class="bar-mini"><i style="width:${Math.abs(x.v)/mx*100}%;background:${color}"></i></div></div></div>`).join(''); };
+  box.innerHTML=`
+    <div class="dcard" style="border-top:3px solid var(--rev)">
+      <div class="dc-h"><span class="dc-t">Doanh thu · 收入</span></div>
+      <div class="dc-big">${usd(rev.total)}</div><div class="dc-u">USD · tháng ${m.replace('月','')} · ${m}</div>
+      <div class="brk">${brk(revItems,usd,viEnt,C.rev)||'<div class="dc-u">Không có dữ liệu · 無資料</div>'}</div></div>
+    <div class="dcard" style="border-top:3px solid var(--op)">
+      <div class="dc-h"><span class="dc-t">Chi phí vận hành · 營業費用</span><span class="chip flat">${pct(op.ratio||0)}</span></div>
+      <div class="dc-big">${expFmt(YEAR,op.total||0)}</div><div class="dc-u">${expUnit()}</div>
+      <div class="brk">${brk(opItems,v=>expFmt(YEAR,v),viDept,C.op)||'<div class="dc-u">Không có dữ liệu · 無資料</div>'}</div></div>
+    <div class="dcard" style="border-top:3px solid var(--mfg)">
+      <div class="dc-h"><span class="dc-t">Chi phí sản xuất · 製造費用</span><span class="chip flat">${pct(mfg.ratio||0)}</span></div>
+      <div class="dc-big">${expFmt(YEAR,mfg.total||0)}</div><div class="dc-u">${expUnit()}</div>
+      <div class="brk">${brk(mfgItems,v=>expFmt(YEAR,v),viDept,C.mfg)||'<div class="dc-u">Không có dữ liệu · 無資料</div>'}</div></div>`;
+}
+
+/* ---- Revenue section ---- */
+function renderRevenue(d){
+  const ms=MONTHS.filter(m=>d.revenue.months[m]);
+  const labels=ms.map(monLabel);
+  killChart('revTrend');
+  charts.revTrend=new Chart(document.getElementById('revTrend'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Doanh thu hợp nhất · 合併收入 (USD)',
+      data:ms.map(m=>d.revenue.months[m].total),borderColor:C.rev,backgroundColor:'rgba(15,118,110,.12)',
+      fill:true,tension:.3,pointRadius:3,pointBackgroundColor:C.rev,borderWidth:2.5}]},
+    options:baseOpts(v=>usd(v),'USD')
+  });
+  // donut by entity (YTD)
+  const ents=d.revenue.entities.map(e=>({k:e,v:d.revenue.total[e]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  killChart('revDonut');
+  charts.revDonut=new Chart(document.getElementById('revDonut'),donutCfg(
+    ents.map(x=>viEnt(x.k)),ents.map(x=>x.v),ents.map((_,i)=>PAL[i%PAL.length]),usd,'Cơ cấu doanh thu · 收入結構'));
+  // table — tổng cộng lên đầu, sau đó chi tiết công ty
+  const EC=d.revenue.entities;
+  buildTable('revTable',
+    ['Tháng · 月份','Hợp nhất · 综合',...EC.map(viEnt)],
+    ms.map(m=>[monLabel(m),usd(d.revenue.months[m].total),...EC.map(e=>usd(d.revenue.months[m][e]||0))]),
+    ['Cả năm · 综合',usd(d.revenue.total.total||0),...EC.map(e=>usd(d.revenue.total[e]||0))],
+    [null,null,...EC.map((_,i)=>PAL[i%PAL.length])], 1);
+}
+
+/* ---- expense section generic ---- */
+function renderExpense(sec,stackId,donutId,tableId,accent){
+  const ms=MONTHS.filter(m=>sec.months[m] && sec.months[m].total>0);
+  const labels=ms.map(monLabel);
+  const depts=sec.depts.filter(dp=> ms.some(m=> (sec.months[m][dp]||0)!==0) || (sec.total[dp]||0)!==0 );
+  const ds=depts.map((dp,i)=>({label:viDept(dp),data:ms.map(m=>expVal(YEAR,sec.months[m][dp]||0)),
+    backgroundColor:PAL[i%PAL.length],borderWidth:0,stack:'s'}));
+  killChart(stackId);
+  charts[stackId]=new Chart(document.getElementById(stackId),{type:'bar',data:{labels,datasets:ds},
+    options:{...baseOpts(v=>CUR==='USD'?usd(v):compactVND(v),expUnit()),
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:C.soft}},
+              y:{stacked:true,grid:{color:'#EEF2F7'},ticks:{color:C.soft,maxTicksLimit:6,callback:v=>CUR==='USD'?usd(v):compactVND(v)}}},
+      plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:11,boxHeight:11,font:{size:11},color:C.ink,usePointStyle:true,pointStyle:'rectRounded'}},
+        tooltip:tooltipCfg(v=>CUR==='USD'?usd(v):compactVND(v))}}});
+  const items=depts.map((dp,i)=>({k:dp,v:sec.total[dp]||0,c:PAL[i%PAL.length]})).filter(x=>x.v!==0).sort((a,b)=>b.v-a.v);
+  killChart(donutId);
+  charts[donutId]=new Chart(document.getElementById(donutId),donutCfg(
+    items.map(x=>viDept(x.k)),items.map(x=>expVal(YEAR,x.v)),items.map(x=>x.c),
+    v=>CUR==='USD'?usd(v):compactVND(v),'Cơ cấu chi phí · 費用結構'));
+  // table — tổng cộng & tỷ lệ lên đầu, sau đó chi tiết bộ phận
+  const head=['Tháng · 月份','Tổng · 合计','CP/DT % · 費用比',...depts.map(viDept)];
+  const body=ms.map(m=>[monLabel(m),expFmt(YEAR,sec.months[m].total||0),pct(sec.months[m].ratio||0),...depts.map(dp=>expFmt(YEAR,sec.months[m][dp]||0))]);
+  const foot=['Cả năm · 综合',expFmt(YEAR,sec.total.total||0),pct(sec.total.ratio||0),...depts.map(dp=>expFmt(YEAR,sec.total[dp]||0))];
+  buildTable(tableId,head,body,foot,[null,null,null,...depts.map((_,i)=>PAL[i%PAL.length])], 2);
+}
+function renderOpex(d){ renderExpense(d.opex,'opStack','opDonut','opTable',C.op); }
+function renderMfg(d){ renderExpense(d.mfg,'mfgStack','mfgDonut','mfgTable',C.mfg); }
+
+/* ---- analysis ---- */
+function renderAnalysis(){
+  const ys=yearsSorted().slice().sort((a,b)=>a-b);
+  const rev=ys.map(y=>DATA[y].revenue.total.total||0);
+  const op =ys.map(y=>expVal(y,DATA[y].opex.total.total||0));
+  const mfg=ys.map(y=>expVal(y,DATA[y].mfg.total.total||0));
+  killChart('yoyChart');
+  charts.yoyChart=new Chart(document.getElementById('yoyChart'),{type:'bar',
+    data:{labels:ys,datasets:[
+      {label:'Doanh thu · 收入 (USD)',data:rev,backgroundColor:C.rev,borderRadius:5},
+      {label:'CP vận hành · 營業費用 ('+(CUR==='USD'?'USD':'VND')+')',data:op,backgroundColor:C.op,borderRadius:5},
+      {label:'CP sản xuất · 製造費用 ('+(CUR==='USD'?'USD':'VND')+')',data:mfg,backgroundColor:C.mfg,borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:11},color:C.ink,usePointStyle:true,pointStyle:'rectRounded'}},
+        tooltip:tooltipCfg(v=>CUR==='USD'?usd(v):compactVND(v))},
+      scales:{x:{grid:{display:false},ticks:{color:C.soft}},y:{grid:{color:'#EEF2F7'},ticks:{color:C.soft,maxTicksLimit:6,callback:v=>CUR==='USD'?usd(v):compactVND(v)}}}}});
+  // ratio trend
+  const opr=ys.map(y=>(DATA[y].opex.total.ratio||0)*100);
+  const mfr=ys.map(y=>(DATA[y].mfg.total.ratio||0)*100);
+  killChart('ratioChart');
+  charts.ratioChart=new Chart(document.getElementById('ratioChart'),{type:'line',
+    data:{labels:ys,datasets:[
+      {label:'CP vận hành/DT · 營業費用比 %',data:opr,borderColor:C.op,backgroundColor:'rgba(79,70,229,.1)',tension:.3,borderWidth:2.5,pointRadius:3,pointBackgroundColor:C.op},
+      {label:'CP sản xuất/DT · 製造費用比 %',data:mfr,borderColor:C.mfg,backgroundColor:'rgba(180,83,9,.1)',tension:.3,borderWidth:2.5,pointRadius:3,pointBackgroundColor:C.mfg}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:11},color:C.ink,usePointStyle:true}},
+        tooltip:tooltipCfg(v=>v.toFixed(2)+'%')},
+      scales:{x:{grid:{display:false},ticks:{color:C.soft}},y:{grid:{color:'#EEF2F7'},ticks:{color:C.soft,callback:v=>v+'%'}}}}});
+  // insights (song ngữ Việt–Trung / 越南語–中文)
+  const d=DATA[YEAR]; const ins=[];
+  const viDeptVN=k=>DEPT_VI[k]||k;               // chỉ tiếng Việt
+  const grpVI={vh:'vận hành',sx:'sản xuất'}, grpZH={vh:'營業',sx:'製造'};
+  const rmonths=MONTHS.filter(m=>d.revenue.months[m]?.total>0);
+  if(rmonths.length){
+    const best=rmonths.reduce((a,m)=> d.revenue.months[m].total>d.revenue.months[a].total?m:a,rmonths[0]);
+    const bn=best.replace('月','');
+    ins.push(['📈',
+      `Tháng cao nhất về doanh thu là <b>Tháng ${bn}</b> với <b>${usd(d.revenue.months[best].total)}</b>.`,
+      `收入最高的月份為 <b>${bn}月</b>，達 <b>${usd(d.revenue.months[best].total)}</b>。`]);
+    const te=d.revenue.entities.map(e=>({e,v:d.revenue.total[e]||0})).sort((a,b)=>b.v-a.v)[0];
+    if(te&&te.v>0){ const sh=(te.v/(d.revenue.total.total||1)*100).toFixed(1);
+      ins.push(['🏢',
+        `<b>${viEnt(te.e)}</b> đóng góp lớn nhất, chiếm <b>${sh}%</b> tổng doanh thu năm ${YEAR}.`,
+        `<b>${te.e}</b> 貢獻最大，佔 ${YEAR} 年總收入的 <b>${sh}%</b>。`]); }
+  }
+  const allExp=[...d.opex.depts.map(k=>({k,v:d.opex.total[k]||0,g:'vh'})),
+               ...d.mfg.depts.map(k=>({k,v:d.mfg.total[k]||0,g:'sx'}))].sort((a,b)=>b.v-a.v);
+  if(allExp[0]&&allExp[0].v>0){ const t=allExp[0];
+    ins.push(['💸',
+      `Bộ phận tốn chi phí nhất là <b>${viDeptVN(t.k)}</b> (${grpVI[t.g]}): <b>${expFmt(YEAR,t.v)}</b>.`,
+      `費用最高的部門為 <b>${t.k}</b>（${grpZH[t.g]}費用），達 <b>${expFmt(YEAR,t.v)}</b>。`]); }
+  const tr=(d.opex.total.ratio||0)+(d.mfg.total.ratio||0);
+  ins.push(['⚖️',
+    `Tổng chi phí bằng <b>${pct(tr)}</b> doanh thu năm ${YEAR} (vận hành ${pct(d.opex.total.ratio||0)} + sản xuất ${pct(d.mfg.total.ratio||0)}).`,
+    `總費用為 ${YEAR} 年收入的 <b>${pct(tr)}</b>（營業 ${pct(d.opex.total.ratio||0)} + 製造 ${pct(d.mfg.total.ratio||0)}）。`]);
+  const prev=DATA[String(+YEAR-1)];
+  if(prev&&prev.revenue.total.total){ const g=(d.revenue.total.total-prev.revenue.total.total)/prev.revenue.total.total;
+    const gp=(Math.abs(g)*100).toFixed(1);
+    ins.push([g>=0?'🟢':'🔴',
+      `Doanh thu ${g>=0?'tăng':'giảm'} <b>${gp}%</b> so với năm ${+YEAR-1}.`,
+      `收入較 ${+YEAR-1} 年 ${g>=0?'增長':'下降'} <b>${gp}%</b>。`]); }
+  const fr=nf0.format(Math.round(fxRate(YEAR)));
+  const manual=FX_MANUAL[YEAR]!=null;
+  ins.push(['💱',
+    `Tỷ giá quy đổi năm ${YEAR}: <b>${fr} ₫/USD</b> (${manual?'nhập tay':'theo file'}).`,
+    `${YEAR} 年換算匯率：<b>${fr} ₫/USD</b>（${manual?'手動':'依檔案'}）。`]);
+  document.getElementById('insights').innerHTML=ins.map(x=>
+    `<div class="ins"><div class="ic">${x[0]}</div><div class="it">${x[1]}<span class="zh2">${x[2]}</span></div></div>`).join('');
+}
+
+/* ---- chart config helpers ---- */
+function baseOpts(fmt,unit){ return {responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:tooltipCfg(fmt)},
+  scales:{x:{grid:{display:false},ticks:{color:C.soft}},
+          y:{grid:{color:'#EEF2F7'},ticks:{color:C.soft,maxTicksLimit:6,callback:fmt}}}}; }
+function tooltipCfg(fmt){ return {backgroundColor:C.ink,padding:11,cornerRadius:8,titleFont:{family:'Space Grotesk'},
+  bodyFont:{family:'IBM Plex Mono',size:12},callbacks:{label:c=>' '+(c.dataset.label?c.dataset.label+': ':'')+fmt(c.parsed.y??c.parsed)}}; }
+function donutCfg(labels,data,colors,fmt,title){ return {type:'doughnut',
+  data:{labels,datasets:[{data,backgroundColor:colors,borderColor:'#fff',borderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+    plugins:{legend:{position:'right',labels:{boxWidth:11,boxHeight:11,font:{size:11},color:C.ink,usePointStyle:true,pointStyle:'rectRounded',padding:8}},
+      title:{display:true,text:title,color:C.soft,font:{family:'Space Grotesk',size:12},padding:{bottom:6}},
+      tooltip:{backgroundColor:C.ink,padding:11,cornerRadius:8,bodyFont:{family:'IBM Plex Mono',size:12},
+        callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0)||1; return ' '+c.label+': '+fmt(c.parsed)+' ('+(c.parsed/t*100).toFixed(1)+'%)';}}}}}}; }
+
+function buildTable(id,head,body,foot,colorByCol,sumCols){
+  const t=document.getElementById(id); sumCols=sumCols||0;
+  const cls=i=>`${i?'num':''}${(i>=1&&i<=sumCols)?' sumcol':''}`;
+  const dot=i=>(colorByCol&&colorByCol[i])?`<span class="dot" style="background:${colorByCol[i]}"></span>`:'';
+  const th='<thead><tr>'+head.map((h,i)=>`<th class="${cls(i)}">${dot(i)}${h}</th>`).join('')+'</tr></thead>';
+  const tb='<tbody>'+body.map(r=>'<tr>'+r.map((c,i)=>`<td class="${cls(i)}">${c}</td>`).join('')+'</tr>').join('')
+    +(foot?`<tr class="total-row">`+foot.map((c,i)=>`<td class="${cls(i)}">${c}</td>`).join('')+'</tr>':'')+'</tbody>';
+  t.innerHTML=th+tb;
+}
+
+/* ====================== controls ====================== */
+function buildYearButtons(){
+  const el=document.getElementById('yearsel');
+  el.innerHTML=yearsSorted().map(y=>`<button data-y="${y}" class="${y===YEAR?'on':''}">${y}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{ YEAR=b.dataset.y;
+    el.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.y===YEAR)); render(); });
+  buildTplYears();
+}
+document.getElementById('monthsel').addEventListener('change',e=>renderDetail(DATA[YEAR],e.target.value));
+document.getElementById('curtoggle').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  CUR=b.dataset.c; document.querySelectorAll('#curtoggle button').forEach(x=>x.classList.toggle('on',x.dataset.c===CUR)); render(); });
+
+/* upload */
+const drop=document.getElementById('drop'), fi=document.getElementById('fileInput');
+function pickFile(){ fi.value=''; fi.click(); }                 // reset để chọn lại cùng file vẫn được
+document.getElementById('openUpload').onclick=pickFile;         // bấm nút là mở hộp chọn file ngay
+document.getElementById('closeDrop').onclick=(e)=>{ e.stopPropagation(); drop.classList.remove('show'); };
+drop.addEventListener('click',(e)=>{ if(e.target.id==='closeDrop') return; pickFile(); });
+// kéo–thả file vào bất kỳ đâu trên trang
+let dragN=0; const hasFiles=e=>e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes('Files');
+window.addEventListener('dragenter',e=>{ if(hasFiles(e)){e.preventDefault();dragN++;drop.classList.add('show');} });
+window.addEventListener('dragover', e=>{ if(hasFiles(e)) e.preventDefault(); });
+window.addEventListener('dragleave',e=>{ if(hasFiles(e)){dragN--; if(dragN<=0) drop.classList.remove('show');} });
+window.addEventListener('drop',     e=>{ e.preventDefault(); dragN=0; drop.classList.remove('show');
+  const f=e.dataTransfer&&e.dataTransfer.files[0]; if(f) handleFile(f); });
+fi.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) handleFile(f); });
+
+function toast(msg,err,sticky){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'+(err?' err':'');
+  clearTimeout(toast._t); if(!sticky) toast._t=setTimeout(()=>t.className='toast',3800); }
+function handleFile(file){
+  if(!/\.xlsx?$/i.test(file.name)){ toast('Chỉ nhận file .xls hoặc .xlsx · 僅接受 .xls/.xlsx 檔',true); return; }
+  toast('⏳ Đang đọc & phân tích file… · 讀取分析中…', false, true);
+  const r=new FileReader();
+  r.onerror=()=>toast('Không đọc được file. · 無法讀取檔案',true);
+  r.onload=ev=>{ setTimeout(()=>{ try{
+      const found=parseWorkbook(new Uint8Array(ev.target.result));
+      const keys=Object.keys(found);
+      if(!keys.length){ toast('Không tìm thấy sheet 综合表YYYY trong file. · 檔案中找不到 综合表YYYY 工作表',true); return; }
+      keys.forEach(y=>DATA[y]=found[y]); ensureFX(keys); YEAR=yearsSorted()[0];
+      buildYearButtons(); render(); drop.classList.remove('show');
+      toast('✓ Đã cập nhật & phân tích lại — năm '+keys.sort().join(', ')+' · 已更新並重新分析');
+    }catch(err){ console.error(err); toast('Lỗi đọc file: '+(err&&err.message||err)+' · 讀取錯誤',true); }
+  },30); };
+  r.readAsArrayBuffer(file);
+}
+
+/* ====================== TEMPLATE GENERATOR (khớp cấu trúc mới nhất) ====================== */
+function colL(i){let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26);}return s;}
+function generateTemplate(){
+  const sel=document.getElementById('tplYear');
+  const y = (sel && sel.value) ? sel.value : YEAR;
+  const d = DATA[y] || null;                              // dữ liệu năm đó (null nếu năm mới)
+  const base = d || DATA[yearsSorted()[0]];               // cấu trúc cột: năm đó, hoặc năm mới nhất
+  if(!base){ toast('Chưa có cấu trúc để tạo mẫu. · 尚無結構可產生範本',true); return; }
+  const isNew = !d;
+  const E=base.revenue.entities, OD=base.opex.depts, MD=base.mfg.depts, fx=Math.round(fxRate(y));
+  const rvV=(m,k)=> (d && d.revenue.months[m] && d.revenue.months[m][k])||0;
+  const opV=(m,k)=> (d && d.opex.months[m] && d.opex.months[m][k])||0;
+  const mfV=(m,k)=> (d && d.mfg.months[m] && d.mfg.months[m][k])||0;
+  const grid=[]; const R=r=>{while(grid.length<=r)grid.push([]);return grid[r];}; const put=(r,c,v)=>{R(r)[c]=v;};
+  // meta
+  put(0,2,`截至${d?(d.asof||y+'.__.__'):y+'.__.__'} 越南怡業收入及費用相關報表  /  Cập nhật đến — sửa NGÀY tại ô này (dạng ${y}.MM.DD)`);
+  put(1,0,'汇率 / Tỷ giá (VND/USD →):'); put(1,1,fx);
+  put(2,0,(isNew?`★ MẪU TRỐNG cho năm ${y} — `:'★ ')+'HƯỚNG DẪN: chỉ nhập số vào các ô phòng ban/công ty theo tháng. Các cột 合计 / 综合 / tỷ lệ sẽ TỰ TÍNH. Sửa ngày ở ô trên, tỷ giá ở ô B2. / 僅需填入各部門·公司之月份數字，合計與比例會自動計算。');
+  // 1) revenue
+  put(4,0,'1. 收入 / Doanh thu (USD)');
+  put(5,0,'月份'); put(5,1,'综合收入USD'); E.forEach((e,i)=>put(5,2+i,e));
+  const rv0=6;
+  MONTHS.forEach((m,i)=>{const r=rv0+i; put(r,0,m); E.forEach((e,k)=>put(r,2+k,rvV(m,e)));});
+  const rvT=rv0+12; put(rvT,0,'综合');
+  // 2) opex
+  const oT0=rvT+2; put(oT0,0,'2. 營業費用 / Chi phí vận hành (VND)');
+  const oH=oT0+1; put(oH,0,'月份'); OD.forEach((dp,i)=>put(oH,1+i,dp)); put(oH,1+OD.length,'合计'); put(oH,2+OD.length,'费用/收入比例');
+  const op0=oH+1;
+  MONTHS.forEach((m,i)=>{const r=op0+i; put(r,0,m); OD.forEach((dp,k)=>put(r,1+k,opV(m,dp)));});
+  const opT=op0+12; put(opT,0,'综合');
+  // 3) mfg
+  const mT0=opT+2; put(mT0,0,'3. 製造費用 / Chi phí sản xuất (VND)');
+  const mH=mT0+1; put(mH,0,'月份'); MD.forEach((dp,i)=>put(mH,1+i,dp)); put(mH,1+MD.length,'合计'); put(mH,2+MD.length,'费用/收入比例');
+  const mf0=mH+1;
+  MONTHS.forEach((m,i)=>{const r=mf0+i; put(r,0,m); MD.forEach((dp,k)=>put(r,1+k,mfV(m,dp)));});
+  const mfT=mf0+12; put(mfT,0,'综合');
+
+  const ws=XLSX.utils.aoa_to_sheet(grid);
+  const setF=(r,c,f,v)=>{ ws[colL(c)+(r+1)]={t:'n',f:f,v:(v==null?0:v)}; };
+  const eF=colL(2), eL=colL(1+E.length);
+  MONTHS.forEach((m,i)=>{const r=rv0+i; setF(r,1,`SUM(${eF}${r+1}:${eL}${r+1})`,rvV(m,'total'));});
+  setF(rvT,1,`SUM(B${rv0+1}:B${rv0+12})`, d?(d.revenue.total.total||0):0);
+  E.forEach((e,k)=>{const CL=colL(2+k); setF(rvT,2+k,`SUM(${CL}${rv0+1}:${CL}${rv0+12})`, d?(d.revenue.total[e]||0):0);});
+  function expForm(depts,row0,totRow,getV,sec){
+    const tCol=1+depts.length, rCol=2+depts.length, dF=colL(1), dL=colL(depts.length);
+    MONTHS.forEach((m,i)=>{const r=row0+i, er=r+1;
+      setF(r,tCol,`SUM(${dF}${er}:${dL}${er})`,getV(m,'total'));
+      const revCell='B'+(rv0+i+1);
+      setF(r,rCol,`IFERROR(${colL(tCol)}${er}/($B$2*${revCell}),0)`,getV(m,'ratio'));});
+    depts.forEach((dp,k)=>{const CL=colL(1+k); setF(totRow,1+k,`SUM(${CL}${row0+1}:${CL}${row0+12})`, sec?(sec.total[dp]||0):0);});
+    setF(totRow,tCol,`SUM(${colL(tCol)}${row0+1}:${colL(tCol)}${row0+12})`, sec?(sec.total.total||0):0);
+    setF(totRow,rCol,`IFERROR(${colL(tCol)}${totRow+1}/($B$2*B${rvT+1}),0)`, sec?(sec.total.ratio||0):0);
+  }
+  expForm(OD,op0,opT,opV, d?d.opex:null);
+  expForm(MD,mf0,mfT,mfV, d?d.mfg:null);
+
+  const wide=Math.max(E.length+2,OD.length+3,MD.length+3);
+  ws['!cols']=[{wch:18}].concat(Array(wide).fill({wch:15}));
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'综合表'+y);
+  XLSX.writeFile(wb,`bang-mau-综合表${y}.xlsx`);
+  toast('✓ Đã tải bảng mẫu 综合表'+y+(isNew?' (mẫu trống năm mới)':'')+' — điền số rồi tải lên lại · 已下載範本');
+}
+function buildTplYears(){
+  const sel=document.getElementById('tplYear'); if(!sel) return;
+  const prev=sel.value;
+  const exist=yearsSorted();                              // các năm đã có (giảm dần)
+  const latest=exist.length?Math.max(...exist.map(Number)):new Date().getFullYear();
+  const future=[latest+1,latest+2,latest+3];              // 3 năm kế tiếp
+  sel.innerHTML =
+    exist.map(y=>`<option value="${y}">Năm ${y} · ${y}年${DATA[y]?'':''}</option>`).join('')
+    + future.map(y=>`<option value="${y}">＋ Năm mới ${y} · 新增 ${y}年 (trống)</option>`).join('');
+  if([...exist,...future.map(String)].includes(prev)) sel.value=prev;
+}
+document.getElementById('dlTemplate').onclick=generateTemplate;
+document.getElementById('exportData').onclick=()=>{
+  if(!DATA||!Object.keys(DATA).length){ toast('Chưa có dữ liệu để xuất. · 尚無資料',true); return; }
+  const blob=new Blob([JSON.stringify(DATA,null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='data.json';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('✓ Đã xuất data.json — tải file này lên GitHub để mọi người thấy số mới · 已匯出，請上傳至 GitHub');
+};
+
+/* ====================== init / nạp dữ liệu ====================== */
+/* Ưu tiên đọc data.json (dùng chung, có thể cập nhật riêng); nếu không có thì dùng bản nhúng sẵn.
+   Kèm ?t=timestamp để LUÔN lấy bản mới nhất, bỏ qua cache của trình duyệt/CDN. */
+async function boot(){
+  let src='bản nhúng · 內嵌';
+  try{
+    const res=await fetch('data.json?t='+Date.now(), {cache:'no-store'});
+    if(res.ok){ const j=await res.json(); if(j && Object.keys(j).length){ DATA=j; src='data.json (trực tuyến · 線上)'; } }
+  }catch(e){ /* mở bằng file:// hoặc chưa có data.json → dùng bản nhúng */ }
+  if(!Object.keys(DATA).length) DATA=EMBEDDED;
+  const se=document.getElementById('dataSource'); if(se) se.textContent=src;
+  if(!Object.keys(DATA).length){ document.getElementById('kpis').innerHTML='<div class="card">Chưa có dữ liệu — bấm “Tải file tuần mới”. · 尚無資料，請點擊「上傳新檔」。</div>'; return; }
+  YEAR=yearsSorted()[0]; ensureFX(); buildYearButtons(); render();
+}
+boot();
+</script>
+</body>
+</html>
